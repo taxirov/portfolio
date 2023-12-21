@@ -7,8 +7,12 @@ import livereload from 'rollup-plugin-livereload';
 import css from 'rollup-plugin-css-only';
 import sveltePreprocess from 'svelte-preprocess';
 import typescript from '@rollup/plugin-typescript';
+import fs from "fs" 
 
 const production = !process.env.ROLLUP_WATCH;
+
+const tlsCert = "/etc/letsencrypt/live/saad.uz/fullchain.pem"
+const tlsKey = "/etc/letsencrypt/live/saad.uz/privkey.pem"
 
 function serve() {
 	let server;
@@ -73,7 +77,13 @@ export default {
 
 		// Watch the `public` directory and refresh the
 		// browser on changes when not in production
-		!production && livereload('public'),
+		!production && livereload({
+			watch: "public",
+			https: (tlsCert && tlsKey) ? { // 👈 add the 'https' attribute, an object defining 'cert' and 'key'
+				key: fs.readFileSync(tlsKey),
+				cert: fs.readFileSync(tlsCert),
+			} : null,
+		}),
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
