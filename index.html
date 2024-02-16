@@ -50,10 +50,10 @@
 		</a>
 	</div>
 	<section class="grid grid-cols-1">
-		<div id="home" class="grid grid-cols-1 md:grid-cols-2 items-center justify-center h-screen w-full">
+		<div id="home" class="grid grid-cols-1 md:grid-cols-2 items-center justify-center h-screen w-full pb-[100px] md:pb-0">
 			<div class="flex flex-col items-center md:items-start justify-start gap-3 md:gap-5 md:pl-16">
 				<img class="md:hidden mb-8" src="./Software developer.png" alt="">
-				<h1 class="text-3xl sm:text-4xl lg:text-5xl w-fit font-bold text-slate-800">Saad Takhir</h1>
+				<h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl w-fit font-bold text-slate-800">Saad Takhir</h1>
 				<p class="text-2xl uppercase font-semibold w-fit text-slate-500">Backend Developer</p>
 				<div class="flex gap-1 items-center justify-center w-fit mb-8 md:mb-0">
 					<a href="https://youtube.com/@saad_takhir" target="_blank" class="p-1 w-fit text-slate-800 hover:text-red-700 text-2xl"><i class="bi bi-youtube"></i></a>
@@ -66,26 +66,48 @@
 				<img class="w-3/4" src="./Software developer.png" alt="">
 			</div>
 		</div>
-		<div id="skills" class="flex flex-col gap-4 pt-8 h-fit">
-			<h1 class="text-4xl text-left font-semibold">Skills</h1>
+		<div id="skills" class="flex flex-col gap-4 pt-8 md:pt-[100px] h-fit">
+			<span class="flex items-center justify-between">
+				<h1 class="text-4xl text-left font-semibold">Skills</h1>
+				<span class="items-center gap-2 p-4 rounded-md bg-stone-50 hidden md:flex">
+					<p>Levels:</p>
+					<p class="px-4 py-2 rounded-md bg-red-100 font-bold text-sm text-slate-600 shadow">Basic</p>
+					<p class="px-4 py-2 rounded-md bg-blue-200 font-bold text-sm text-slate-600 shadow">Novice</p>
+					<p class="px-4 py-2 rounded-md bg-green-300 font-bold text-sm text-slate-600 shadow">Intermediate</p>
+					<p class="px-4 py-2 rounded-md bg-orange-400 font-bold text-sm text-slate-600 shadow">Advanced</p>
+					<p class="px-4 py-2 rounded-md bg-yellow-500 font-bold text-sm text-slate-600 shadow">Expert</p>
+				</span>
+			</span>
 			<div class="languages flex flex-col gap-2 md:gap-3 p-4 shadow-md rounded-2xl w-full bg-gradient-to-b from-stone-50 to-white">
 				<p class="text-[18px] md:text-md text-slate-500"><i class="bi bi-translate"></i> Programming language</p>
 				<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center gap-2">
-						<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" />
-						<p class="text-lg text-slate-700 font-semibold">Javascript</p>
+					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center justify-between shadow-sm">
+						<span class="flex items-center gap-2">
+							<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" />
+							<p class="text-lg text-slate-700 font-semibold">Javascript</p>
+						</span>
+						<p class="px-4 py-2 rounded-md bg-orange-400 font-bold text-sm text-slate-600 shadow">Advanced</p>
 					</span>
-					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center gap-2">
-						<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" />
-						<p class="text-lg text-slate-700 font-semibold">Typescript</p>
+					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center justify-between shadow-sm">
+						<span class="flex items-center gap-2">
+							<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" />
+							<p class="text-lg text-slate-700 font-semibold">Typescript</p>
+						</span>
+						<p class="px-4 py-2 rounded-md bg-orange-400 font-bold text-sm text-slate-600 shadow">Advanced</p>
 					</span>
-					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center gap-2">
-						<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" />
-						<p class="text-lg text-slate-700 font-semibold">Python</p>
+					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center justify-between shadow-sm">
+						<span class="flex items-center gap-2">
+							<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" />
+							<p class="text-lg text-slate-700 font-semibold">Python</p>
+						</span>
+						<p class="px-4 py-2 rounded-md bg-red-100 font-bold text-sm text-slate-600 shadow">Basic</p>
 					</span>
-					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center gap-2">
-						<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" />
-						<p class="text-lg text-slate-700 font-semibold">C++</p>
+					<span class="px-3 py-2 rounded-xl bg-slate-100 flex items-center justify-between shadow-sm">
+						<span class="flex items-center gap-2">
+							<img class="w-[32px]" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" />
+							<p class="text-lg text-slate-700 font-semibold">C++</p>
+						</span>
+						<p class="px-4 py-2 rounded-md bg-red-100 font-bold text-sm text-slate-600 shadow">Basic</p>
 					</span>
 				</div>
 			</div>
@@ -239,21 +261,36 @@
 				</div>
 			</div>
 		</div>
-		<div id="portfolio" class="flex flex-col gap-4 pt-8 md:pt-[120px] h-screen">
+		<div id="portfolio" class="flex flex-col gap-4 pt-8 md:pt-[120px]">
 			<h1 class="text-4xl font-semibold text-gray-800">Portfolio</h1>
 			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-				<a href="https://github.com/taxirov" target="_blank" class="flex flex-row md:flex-col items-center justify-start md:justify-between gap-5 px-5 py-2 shadow bg-gray-800 rounded-2xl text-white md:pb-8">
-					<i class="bi bi-github text-[6rem] md:text-[14rem]"></i>
-					<p class="text-4xl font-medium">GitHub</p>
-				</a>
-				<a href="https://figma.com/@taxirov" target="_blank" class="flex flex-row md:flex-col items-center justify-start md:justify-between gap-5 px-5 py-6 shadow bg-white rounded-2xl text-gray-800 md:pt-[4rem] md:pb-8">
-					<img src="./Figma-logo.svg" alt="" class="h-[6rem] md:h-[14rem]">
-					<p class="text-4xl font-medium text-gray-800">Figma</p>
-				</a>
-				<a href="https://t.me/saad_blog" target="_blank" class="flex flex-row md:flex-col items-center justify-start md:justify-between gap-5 px-5 py-2 shadow bg-sky-500 rounded-2xl text-white md:pb-8">
-					<i class="bi bi-telegram text-[6rem] text-[14rem]"></i>
-					<p class="text-4xl font-medium">Telegram</p>
-				</a>
+				<div class="flex flex-col rounded-xl bg-stone-50">
+					<div class="flex items-end rounded-t-xl bg-gradient-to-t from-black to-transparent w-full h-[200px] bg-cover" style="background-image: url('./cafe.png')"></div>
+					<div class="flex flex-col gap-2 p-3 text-slate-700">
+						<p class="text-lg font-semibold">Cafe Management System</p>
+						<p class="font-medium"><i class="bi bi-info-circle"></i> This project for cafe, restaurant management system.</p>
+						<p class="font-medium"><i class="bi bi-back"></i> Backend: Typescript, NodeJS, Prisma, PostgreSQL, ExpressJS</p>
+						<p class="font-medium"><i class="bi bi-front"></i> Frontend: Typescript, SvelteJS, Tailwind, Verel</p>
+						<p class="font-medium"><i class="bi bi-lock"></i> Username and password { admin: admin, waiter: waiter }</p>
+						<span class="grid grid-cols-3 gap-2 md:gap-3 w-100">
+							<a href="https://github.com/taxirov/cafe_backend" target="_blank" class="rounded-md bg-gray-800 py-3 text-sm md:text-md text-stone-100 font-bold text-center"><i class="bi bi-github"></i> Backend</a>
+							<a href="https://github.com/taxirov/cafe_frontend" target="_blank" class="rounded-md bg-gray-800 py-3 text-sm md:text-md text-stone-100 font-bold text-center"><i class="bi bi-github"></i> Frontend</a>
+							<a href="https://cafe.saad.uz" target="_blank" class="rounded-md bg-blue-800 py-3 text-sm md:text-md text-stone-100 font-bold text-center"><i class="bi bi-eye"></i> View demo</a>
+						</span>
+					</div>
+				</div>
+				<div class="flex flex-col rounded-xl bg-stone-50">
+					<div class="flex items-end rounded-t-xl bg-gradient-to-t from-black to-transparent w-full h-[200px] bg-cover" style="background-image: url('./todo.png')"></div>
+					<div class="flex flex-col gap-2 p-3 text-slate-700">
+						<p class="text-lg font-semibold">Todo Web App</p>
+						<p class="font-medium"><i class="bi bi-info-circle"></i> Todo.saad.uz is a user-friendly task management web application that helps you stay organized and productive. todo.saad.uz offers the functions of adding tasks and marking them as completed or not completed or deleting them.</p>
+						<p class="font-medium"><i class="bi bi-front"></i> Frontend: HTML, CSS, Tailwind, Javascript</p>
+						<span class="grid grid-cols-2 gap-2 md:gap-3 w-100">
+							<a href="https://github.com/taxirov/todo" target="_blank" class="rounded-md bg-gray-800 py-3 text-sm md:text-md text-stone-100 font-bold text-center"><i class="bi bi-github"></i> Source code</a>
+							<a href="https://todo.saad.uz" target="_blank" class="rounded-md bg-blue-800 py-3 text-sm md:text-md text-stone-100 font-bold text-center"><i class="bi bi-eye"></i> View demo</a>
+						</span>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div id="about-me" class="flex flex-col gap-4 pt-8 md:pt-[120px] h-screen text-gray-800">
