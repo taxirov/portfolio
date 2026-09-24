@@ -1,9 +1,8 @@
 "use server";
 
-import { createHash } from "node:crypto";
-import { headers } from "next/headers";
 import { after } from "next/server";
 import { z } from "zod";
+import { clientIpHash } from "@/lib/client-ip";
 import { db } from "@/lib/db";
 import { notifyTelegram } from "@/lib/notify";
 import { profile } from "@/lib/profile";
@@ -28,14 +27,6 @@ const contactSchema = z.object({
     z.string().min(10, "Message should be at least 10 characters.").max(3000, "Message is too long (3000 max)."),
   ),
 });
-
-async function clientIpHash() {
-  const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
-  return createHash("sha256")
-    .update(`${ip}:${process.env.SESSION_SECRET ?? ""}`)
-    .digest("hex");
-}
 
 export async function sendMessage(_prev: ContactState, formData: FormData): Promise<ContactState> {
   const values = {

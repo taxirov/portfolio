@@ -3,8 +3,11 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
+import { clientIpHash } from "@/lib/client-ip";
 import { db } from "@/lib/db";
+import { notifyTelegram } from "@/lib/notify";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { createSession, deleteSession, requireAdmin } from "@/lib/session";
 import { SLUG_PATTERN, slugify } from "@/lib/slug";
@@ -24,13 +27,33 @@ const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
 // ---------------------------------------------------------------- auth
 
+// The password is short, so failed logins are capped per IP and in total.
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MAX_FAILS_PER_IP = 5;
+const MAX_FAILS_TOTAL = 20;
+
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected) return { error: "Serverda ADMIN_PASSWORD sozlanmagan." };
 
+  const ipHash = await clientIpHash();
+  const since = new Date(Date.now() - LOGIN_WINDOW_MS);
+  const [ipFails, totalFails] = await Promise.all([
+    db.loginAttempt.count({ where: { ipHash, createdAt: { gt: since } } }),
+    db.loginAttempt.count({ where: { createdAt: { gt: since } } }),
+  ]);
+  if (ipFails >= MAX_FAILS_PER_IP || totalFails >= MAX_FAILS_TOTAL) {
+    return { error: "Urinishlar juda ko'p. 15 daqiqadan keyin qayta urinib ko'ring." };
+  }
+
   const password = String(formData.get("password") ?? "");
   const hash = (value: string) => createHash("sha256").update(value).digest();
   if (!timingSafeEqual(hash(password), hash(expected))) {
+    await db.loginAttempt.create({ data: { ipHash } });
+    if (totalFails + 1 === MAX_FAILS_TOTAL) {
+      after(() => notifyTelegram("⚠️ app.saad.uz: too many failed admin logins, login is paused for 15 minutes."));
+    }
+    after(() => db.loginAttempt.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 86_400_000) } } }));
     await new Promise((resolve) => setTimeout(resolve, 600));
     return { error: "Parol noto'g'ri." };
   }

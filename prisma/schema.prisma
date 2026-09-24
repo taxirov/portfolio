@@ -69,3 +69,14 @@ model Post {
 
   @@index([published, publishedAt])
 }
+
+/// Failed admin logins, used to rate limit password guessing.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  /// sha256 of the client IP
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
+}
