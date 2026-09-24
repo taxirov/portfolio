@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  imageUrl        String?
+  backendStack    String?
+  frontendStack   String?
+  note            String?
+  repoUrl         String?
+  frontendRepoUrl String?
+  demoUrl         String?
+  sortOrder       Int      @default(0)
+  published       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([published, sortOrder])
+}
+
+model SocialLink {
+  id         String   @id @default(cuid())
+  platform   String
+  url        String
+  label      String?
+  showInHero Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([published, sortOrder])
+}
