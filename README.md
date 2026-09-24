@@ -24,7 +24,8 @@ npm run dev
 
 | Name | Purpose |
 | --- | --- |
-| `DATABASE_URL` | Postgres connection string for local development. On Netlify leave it unset: Netlify Database sets `NETLIFY_DB_URL` |
+| `DATABASE_URL` | Postgres connection string (Neon pooled URL in production) |
+| `DATABASE_URL_UNPOOLED` | Optional direct connection used by `prisma migrate`; set it when `DATABASE_URL` goes through a pooler |
 | `ADMIN_PASSWORD` | Admin panel password |
 | `SESSION_SECRET` | At least 32 random characters, used to sign the admin session cookie |
 | `ADMIN_HOST` | Admin host name, default `app.saad.uz` |
@@ -35,10 +36,10 @@ Uploaded images are stored in Netlify Blobs (locally in the gitignored `.uploads
 ## Deploying (Netlify)
 
 1. Create a Netlify site from the GitHub repo. `netlify.toml` sets the build command (`prisma generate && prisma migrate deploy && next build`); Netlify adds its Next.js runtime automatically.
-2. Netlify Database is provisioned because `@netlify/database` is a dependency. It provides `NETLIFY_DB_URL` to builds and functions, so the build applies the Prisma migrations before `next build`. Deploy previews get their own database branch.
-3. Add `ADMIN_PASSWORD` and `SESSION_SECRET` (and optionally the Telegram variables) in Site configuration → Environment variables.
+2. Create a Postgres database on [Neon](https://neon.tech) in AWS us-east-2 (Ohio), the same region as Netlify Functions.
+3. Add `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct), `ADMIN_PASSWORD` and `SESSION_SECRET` (and optionally the Telegram variables) in Site configuration → Environment variables.
 4. Netlify Blobs needs no setup. Production uploads go to the `uploads` store; deploy previews write to `uploads-preview`, so they never touch production images.
-5. Seed once: get the production connection string with `npx netlify-cli database status --show-credentials --branch production`, then run `DATABASE_URL="<that url>" npm run db:seed`.
+5. Seed once: run `DATABASE_URL="<Neon URL>" npm run db:seed`.
 6. Add the domains `saad.uz`, `www.saad.uz` and `app.saad.uz` in Domain management. In Cloudflare DNS, with the proxy off ("DNS only") so Netlify can issue the certificate:
 
    | Type | Name | Content |
