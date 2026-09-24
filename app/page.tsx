@@ -1,16 +1,22 @@
 import { About } from "@/components/site/about";
+import { Contact } from "@/components/site/contact";
 import { Footer } from "@/components/site/footer";
 import { Hero } from "@/components/site/hero";
+import { LatestPosts } from "@/components/site/latest-posts";
 import { Navbar } from "@/components/site/navbar";
 import { Projects } from "@/components/site/projects";
 import { Skills } from "@/components/site/skills";
-import { getPublishedProjects, getPublishedSocials } from "@/lib/data";
+import { getPublishedPosts, getPublishedProjects, getPublishedSocials } from "@/lib/data";
 
 // Admin edits call revalidatePath("/"); this is only the fallback refresh interval.
 export const revalidate = 300;
 
 export default async function Home() {
-  const [projects, socials] = await Promise.all([getPublishedProjects(), getPublishedSocials()]);
+  const [projects, socials, posts] = await Promise.all([
+    getPublishedProjects(),
+    getPublishedSocials(),
+    getPublishedPosts(3),
+  ]);
 
   return (
     <div className="bg-gradient-to-r from-slate-100 to-slate-200">
@@ -19,7 +25,9 @@ export default async function Home() {
         <Hero socials={socials.filter((s) => s.showInHero)} />
         <Skills />
         <Projects projects={projects} />
+        <LatestPosts posts={posts} />
         <About socials={socials} />
+        <Contact />
       </main>
       <Footer />
     </div>

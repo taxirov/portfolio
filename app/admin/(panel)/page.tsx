@@ -5,20 +5,40 @@ import { requireAdmin } from "@/lib/session";
 
 export default async function Dashboard() {
   await requireAdmin();
-  const [projects, publishedProjects, socials, publishedSocials] = await Promise.all([
-    db.project.count(),
-    db.project.count({ where: { published: true } }),
-    db.socialLink.count(),
-    db.socialLink.count({ where: { published: true } }),
-  ]);
+  const [messages, unread, posts, publishedPosts, projects, publishedProjects, socials, publishedSocials] =
+    await Promise.all([
+      db.message.count(),
+      db.message.count({ where: { read: false } }),
+      db.post.count(),
+      db.post.count({ where: { published: true } }),
+      db.project.count(),
+      db.project.count({ where: { published: true } }),
+      db.socialLink.count(),
+      db.socialLink.count({ where: { published: true } }),
+    ]);
 
   const cards = [
+    {
+      href: "/admin/messages",
+      icon: "bi-inbox",
+      title: "Xabarlar",
+      total: messages,
+      detail: `${unread} tasi o'qilmagan`,
+    },
+    {
+      href: "/admin/posts",
+      icon: "bi-journal-text",
+      title: "Blog postlari",
+      total: posts,
+      detail: `${publishedPosts} tasi e'lon qilingan`,
+      add: "/admin/posts/new",
+    },
     {
       href: "/admin/projects",
       icon: "bi-folder",
       title: "Loyihalar",
       total: projects,
-      published: publishedProjects,
+      detail: `${publishedProjects} tasi saytda ko'rinadi`,
       add: "/admin/projects/new",
     },
     {
@@ -26,7 +46,7 @@ export default async function Dashboard() {
       icon: "bi-share",
       title: "Ijtimoiy tarmoqlar",
       total: socials,
-      published: publishedSocials,
+      detail: `${publishedSocials} tasi saytda ko'rinadi`,
       add: "/admin/socials/new",
     },
   ];
@@ -41,17 +61,19 @@ export default async function Dashboard() {
               <i className={`bi ${card.icon}`} aria-hidden /> {card.title}
             </div>
             <p className="text-4xl font-semibold text-slate-800">{card.total}</p>
-            <p className="text-sm text-slate-500">{card.published} tasi saytda ko&apos;rinadi</p>
+            <p className="text-sm text-slate-500">{card.detail}</p>
             <div className="mt-2 flex gap-2">
               <Link href={card.href} className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-200">
                 Ro&apos;yxat
               </Link>
-              <Link
-                href={card.add}
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-              >
-                Yangi qo&apos;shish
-              </Link>
+              {card.add && (
+                <Link
+                  href={card.add}
+                  className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                >
+                  Yangi qo&apos;shish
+                </Link>
+              )}
             </div>
           </div>
         ))}

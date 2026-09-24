@@ -29,3 +29,29 @@ export function getPublishedSocials() {
     }),
   );
 }
+
+const postListSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  coverUrl: true,
+  publishedAt: true,
+} as const;
+
+export function getPublishedPosts(take?: number) {
+  return safe("posts", () =>
+    db.post.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: "desc" },
+      select: postListSelect,
+      take,
+    }),
+  );
+}
+
+export type PostListItem = Awaited<ReturnType<typeof getPublishedPosts>>[number];
+
+export function getPublishedPost(slug: string) {
+  return db.post.findFirst({ where: { slug, published: true } });
+}

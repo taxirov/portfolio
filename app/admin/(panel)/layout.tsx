@@ -1,17 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { logout } from "@/app/admin/actions";
+import { db } from "@/lib/db";
 import { profile } from "@/lib/profile";
 import { requireAdmin } from "@/lib/session";
 
-const nav = [
-  { href: "/admin", label: "Bosh sahifa", icon: "bi-speedometer2" },
-  { href: "/admin/projects", label: "Loyihalar", icon: "bi-folder" },
-  { href: "/admin/socials", label: "Ijtimoiy tarmoqlar", icon: "bi-share" },
-];
-
 export default async function PanelLayout({ children }: LayoutProps<"/admin">) {
   await requireAdmin();
+  const unread = await db.message.count({ where: { read: false } });
+
+  const nav = [
+    { href: "/admin", label: "Bosh sahifa", icon: "bi-speedometer2" },
+    { href: "/admin/messages", label: "Xabarlar", icon: "bi-inbox", badge: unread },
+    { href: "/admin/posts", label: "Blog", icon: "bi-journal-text" },
+    { href: "/admin/projects", label: "Loyihalar", icon: "bi-folder" },
+    { href: "/admin/socials", label: "Ijtimoiy tarmoqlar", icon: "bi-share" },
+  ];
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 p-4 md:flex-row md:p-8">
@@ -28,6 +32,11 @@ export default async function PanelLayout({ children }: LayoutProps<"/admin">) {
               className="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 font-medium text-slate-700 hover:bg-white"
             >
               <i className={`bi ${item.icon}`} aria-hidden /> {item.label}
+              {!!item.badge && (
+                <span className="ml-auto rounded-full bg-indigo-600 px-2 text-xs font-semibold leading-5 text-white">
+                  {item.badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

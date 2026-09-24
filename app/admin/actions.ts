@@ -8,6 +8,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { createSession, deleteSession, requireAdmin } from "@/lib/session";
+import { SLUG_PATTERN, slugify } from "@/lib/slug";
 import { isSafeUrl } from "@/lib/url";
 
 export type FormState =
@@ -88,6 +89,18 @@ async function deleteBlob(url: string | null | undefined) {
   }
 }
 
+/** Uploads an optional image form field to Vercel Blob. */
+async function uploadImage(file: FormDataEntryValue | null, folder: string): Promise<{ url?: string; error?: string }> {
+  if (!(file instanceof File) || file.size === 0) return {};
+  if (!file.type.startsWith("image/")) return { error: "Faqat rasm fayl yuklang." };
+  if (file.size > MAX_IMAGE_BYTES) return { error: "Rasm 4 MB dan kichik bo'lsin." };
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return { error: "Rasm yuklash uchun BLOB_READ_WRITE_TOKEN kerak. Hozircha rasm URL'ini kiriting." };
+  }
+  const blob = await put(`${folder}/${file.name}`, file, { access: "public", addRandomSuffix: true });
+  return { url: blob.url };
+}
+
 function refreshPublicSite() {
   revalidatePath("/");
 }
@@ -119,23 +132,9 @@ export async function saveProject(id: string | null, _prev: FormState, formData:
   const existing = id ? await db.project.findUnique({ where: { id } }) : null;
   if (id && !existing) return { error: "Loyiha topilmadi (o'chirilgan bo'lishi mumkin).", values };
 
-  const file = formData.get("imageFile");
-  if (file instanceof File && file.size > 0) {
-    if (!file.type.startsWith("image/")) {
-      return { fieldErrors: { imageFile: ["Faqat rasm fayl yuklang."] }, values };
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      return { fieldErrors: { imageFile: ["Rasm 4 MB dan kichik bo'lsin."] }, values };
-    }
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return {
-        fieldErrors: { imageFile: ["Rasm yuklash uchun BLOB_READ_WRITE_TOKEN kerak. Hozircha rasm URL'ini kiriting."] },
-        values,
-      };
-    }
-    const blob = await put(`projects/${file.name}`, file, { access: "public", addRandomSuffix: true });
-    data.imageUrl = blob.url;
-  }
+  const upload = await uploadImage(formData.get("imageFile"), "projects");
+  if (upload.error) return { fieldErrors: { imageFile: [upload.error] }, values };
+  if (upload.url) data.imageUrl = upload.url;
 
   try {
     if (existing) {
@@ -239,4 +238,100 @@ export async function toggleSocial(id: string, published: boolean) {
   await db.socialLink.update({ where: { id }, data: { published } });
   refreshPublicSite();
   revalidatePath("/admin/socials");
+}
+
+// ---------------------------------------------------------------- blog posts
+
+const postSchema = z.object({
+  title: text(160, "Sarlavha kiriting."),
+  slug: text(80).refine((v) => v === "" || SLUG_PATTERN.test(v), "Faqat kichik lotin harflari, raqamlar va '-'."),
+  excerpt: optionalText(300),
+  content: text(100_000, "Matn kiriting."),
+  coverUrl: optionalUrl,
+  published: z.boolean(),
+});
+
+function refreshBlog(...slugs: (string | null | undefined)[]) {
+  revalidatePath("/");
+  revalidatePath("/blogs");
+  revalidatePath("/sitemap.xml");
+  for (const slug of new Set(slugs)) if (slug) revalidatePath(`/blogs/${slug}`);
+}
+
+export async function savePost(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const values = formValues(formData);
+
+  const parsed = postSchema.safeParse({ ...values, published: formData.get("published") === "on" });
+  if (!parsed.success) return invalid(parsed.error, values);
+  const { slug: rawSlug, ...fields } = parsed.data;
+
+  const slug = rawSlug || slugify(fields.title);
+  if (!slug) return { fieldErrors: { slug: ["Slug'ni qo'lda kiriting."] }, values };
+
+  const existing = id ? await db.post.findUnique({ where: { id } }) : null;
+  if (id && !existing) return { error: "Post topilmadi (o'chirilgan bo'lishi mumkin).", values };
+
+  const taken = await db.post.findUnique({ where: { slug }, select: { id: true } });
+  if (taken && taken.id !== id) return { fieldErrors: { slug: ["Bu slug band. Boshqasini kiriting."] }, values };
+
+  const upload = await uploadImage(formData.get("coverFile"), "blog");
+  if (upload.error) return { fieldErrors: { coverFile: [upload.error] }, values };
+  if (upload.url) fields.coverUrl = upload.url;
+
+  // The first time a post goes live it gets its publication date; later edits keep it.
+  const publishedAt = fields.published ? (existing?.publishedAt ?? new Date()) : (existing?.publishedAt ?? null);
+  const data = { ...fields, slug, publishedAt };
+
+  try {
+    if (existing) {
+      await db.post.update({ where: { id: existing.id }, data });
+      if (existing.coverUrl !== data.coverUrl) await deleteBlob(existing.coverUrl);
+    } else {
+      await db.post.create({ data });
+    }
+  } catch (error) {
+    console.error("[admin] savePost", error);
+    return { error: "Saqlashda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.", values };
+  }
+
+  refreshBlog(slug, existing?.slug);
+  redirect("/admin/posts");
+}
+
+export async function deletePost(id: string) {
+  await requireAdmin();
+  const post = await db.post.findUnique({ where: { id } });
+  if (post) {
+    await db.post.delete({ where: { id } });
+    await deleteBlob(post.coverUrl);
+    refreshBlog(post.slug);
+  }
+  revalidatePath("/admin/posts");
+}
+
+export async function togglePost(id: string, published: boolean) {
+  await requireAdmin();
+  const post = await db.post.findUnique({ where: { id } });
+  if (!post) return;
+  await db.post.update({
+    where: { id },
+    data: { published, publishedAt: published ? (post.publishedAt ?? new Date()) : post.publishedAt },
+  });
+  refreshBlog(post.slug);
+  revalidatePath("/admin/posts");
+}
+
+// ---------------------------------------------------------------- contact messages
+
+export async function setMessageRead(id: string, read: boolean) {
+  await requireAdmin();
+  await db.message.updateMany({ where: { id }, data: { read } });
+  revalidatePath("/admin", "layout");
+}
+
+export async function deleteMessage(id: string) {
+  await requireAdmin();
+  await db.message.deleteMany({ where: { id } });
+  revalidatePath("/admin", "layout");
 }

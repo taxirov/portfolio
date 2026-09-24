@@ -48,7 +48,7 @@ export function Hero({ socials }: { socials: SocialLink[] }) {
             View projects
           </a>
           <a
-            href={`mailto:${profile.email}`}
+            href="#contact"
             className="rounded-lg border border-slate-300 bg-white/60 px-5 py-2.5 font-semibold text-slate-700 transition-colors hover:bg-white"
           >
             Contact me

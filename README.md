@@ -2,8 +2,9 @@
 
 Personal portfolio of Saad Takhir, built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, Prisma 7 and PostgreSQL.
 
-- **saad.uz**: the public portfolio. Skills and profile data live in `lib/`; projects and social links come from the database.
-- **app.saad.uz**: a password-protected admin panel for adding, editing, hiding and deleting projects and social links. `proxy.ts` rewrites that host to `/admin`.
+- **saad.uz**: the public portfolio. Skills and profile data live in `lib/`; projects, social links and blog posts come from the database. The contact form stores messages in the database.
+- **saad.uz/blogs**: the blog. Posts are written in Markdown in the admin panel.
+- **app.saad.uz**: a password-protected admin panel for blog posts, contact messages, projects and social links. `proxy.ts` rewrites that host to `/admin`.
 
 ## Local development
 
@@ -28,6 +29,7 @@ npm run dev
 | `SESSION_SECRET` | At least 32 random characters, used to sign the admin session cookie |
 | `ADMIN_HOST` | Admin host name, default `app.saad.uz` |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for image uploads (without it, paste an image URL instead) |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional: get a Telegram message for every new contact form message |
 
 ## Deploying (Vercel)
 
