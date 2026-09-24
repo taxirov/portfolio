@@ -5,3 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# The site was first created from a static branch, so the Next.js runtime is not added automatically.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
