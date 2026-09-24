@@ -60,14 +60,13 @@ export function ProjectForm({ action, project }: Props) {
             id="imageFile"
             name="imageFile"
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
             className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:font-medium"
           />
         </Field>
         <TextField
           name="imageUrl"
           label="...yoki rasm URL"
-          type="url"
           state={state}
           defaultValue={project?.imageUrl}
           placeholder="https://..."

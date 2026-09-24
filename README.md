@@ -24,17 +24,25 @@ npm run dev
 
 | Name | Purpose |
 | --- | --- |
-| `DATABASE_URL` | Postgres connection string |
+| `DATABASE_URL` | Postgres connection string for local development. On Netlify leave it unset: Netlify Database sets `NETLIFY_DB_URL` |
 | `ADMIN_PASSWORD` | Admin panel password |
 | `SESSION_SECRET` | At least 32 random characters, used to sign the admin session cookie |
 | `ADMIN_HOST` | Admin host name, default `app.saad.uz` |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for image uploads (without it, paste an image URL instead) |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional: get a Telegram message for every new contact form message |
 
-## Deploying (Vercel)
+Uploaded images are stored in Netlify Blobs (locally in the gitignored `.uploads/` folder) and served from `/uploads/...` by `app/uploads/[...key]/route.ts`.
 
-1. Import the repo in Vercel. Add a Postgres database (Neon) and a Blob store from the Storage tab; both set their env vars automatically.
-2. Add `ADMIN_PASSWORD` and `SESSION_SECRET`.
-3. The `vercel-build` script runs `prisma migrate deploy` before `next build`.
-4. Add the domains `saad.uz`, `www.saad.uz` and `app.saad.uz` to the project, then point DNS at Vercel as the dashboard shows.
-5. Run `npm run db:seed` once against the production `DATABASE_URL`.
+## Deploying (Netlify)
+
+1. Create a Netlify site from the GitHub repo. `netlify.toml` sets the build command (`prisma generate && prisma migrate deploy && next build`); Netlify adds its Next.js runtime automatically.
+2. Netlify Database is provisioned because `@netlify/database` is a dependency. It provides `NETLIFY_DB_URL` to builds and functions, so the build applies the Prisma migrations before `next build`. Deploy previews get their own database branch.
+3. Add `ADMIN_PASSWORD` and `SESSION_SECRET` (and optionally the Telegram variables) in Site configuration → Environment variables.
+4. Netlify Blobs needs no setup. Production uploads go to the `uploads` store; deploy previews write to `uploads-preview`, so they never touch production images.
+5. Seed once: get the production connection string with `npx netlify-cli database status --show-credentials --branch production`, then run `DATABASE_URL="<that url>" npm run db:seed`.
+6. Add the domains `saad.uz`, `www.saad.uz` and `app.saad.uz` in Domain management. In Cloudflare DNS, with the proxy off ("DNS only") so Netlify can issue the certificate:
+
+   | Type | Name | Content |
+   | --- | --- | --- |
+   | `CNAME` (flattened) | `@` | `apex-loadbalancer.netlify.com` |
+   | `CNAME` | `www` | `<site-name>.netlify.app` |
+   | `CNAME` | `app` | `<site-name>.netlify.app` |

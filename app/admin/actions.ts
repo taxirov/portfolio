@@ -1,7 +1,6 @@
 "use server";
 
 import { createHash, timingSafeEqual } from "node:crypto";
-import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -9,7 +8,8 @@ import { db } from "@/lib/db";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { createSession, deleteSession, requireAdmin } from "@/lib/session";
 import { SLUG_PATTERN, slugify } from "@/lib/slug";
-import { isSafeUrl } from "@/lib/url";
+import { deleteUpload, IMAGE_TYPES, saveUpload, type UploadFolder } from "@/lib/uploads";
+import { isLocalPath, isSafeUrl } from "@/lib/url";
 
 export type FormState =
   | {
@@ -59,6 +59,13 @@ const optionalText = (max: number) => text(max).transform((v) => v || null);
 const optionalUrl = str()
   .refine((v) => v === "" || isSafeUrl(v), "http:// yoki https:// bilan boshlanuvchi to'liq manzil kiriting.")
   .transform((v) => v || null);
+// Image fields also accept a path on this site, e.g. /images/cafe.webp or an uploaded /uploads/... file.
+const optionalImageUrl = str()
+  .refine(
+    (v) => v === "" || isLocalPath(v) || isSafeUrl(v),
+    "https:// bilan boshlanuvchi manzil yoki /images/... kabi sayt ichidagi yo'l kiriting.",
+  )
+  .transform((v) => v || null);
 const sortOrder = z.preprocess(
   (v) => (v === undefined || v === "" ? 0 : v),
   z.coerce.number("Son kiriting.").int("Butun son kiriting.").min(-9999).max(9999),
@@ -76,29 +83,20 @@ function invalid(error: z.ZodError, values: Record<string, string>): FormState {
   return { error: "Maydonlarni tekshiring.", fieldErrors: z.flattenError(error).fieldErrors, values };
 }
 
-function isBlobUrl(url: string | null | undefined): url is string {
-  return !!url && url.includes(".public.blob.vercel-storage.com/");
-}
-
-async function deleteBlob(url: string | null | undefined) {
-  if (!isBlobUrl(url) || !process.env.BLOB_READ_WRITE_TOKEN) return;
-  try {
-    await del(url);
-  } catch (error) {
-    console.error("[admin] failed to delete blob", url, error);
-  }
-}
-
-/** Uploads an optional image form field to Vercel Blob. */
-async function uploadImage(file: FormDataEntryValue | null, folder: string): Promise<{ url?: string; error?: string }> {
+/** Saves an optional image form field and returns its /uploads/... path. */
+async function uploadImage(
+  file: FormDataEntryValue | null,
+  folder: UploadFolder,
+): Promise<{ url?: string; error?: string }> {
   if (!(file instanceof File) || file.size === 0) return {};
-  if (!file.type.startsWith("image/")) return { error: "Faqat rasm fayl yuklang." };
+  if (!(file.type in IMAGE_TYPES)) return { error: "Faqat PNG, JPG, WebP, GIF yoki AVIF rasm yuklang." };
   if (file.size > MAX_IMAGE_BYTES) return { error: "Rasm 4 MB dan kichik bo'lsin." };
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return { error: "Rasm yuklash uchun BLOB_READ_WRITE_TOKEN kerak. Hozircha rasm URL'ini kiriting." };
+  try {
+    return { url: await saveUpload(file, folder) };
+  } catch (error) {
+    console.error("[admin] uploadImage", error);
+    return { error: "Rasmni yuklab bo'lmadi. Keyinroq qayta urinib ko'ring." };
   }
-  const blob = await put(`${folder}/${file.name}`, file, { access: "public", addRandomSuffix: true });
-  return { url: blob.url };
 }
 
 function refreshPublicSite() {
@@ -113,7 +111,7 @@ const projectSchema = z.object({
   backendStack: optionalText(200),
   frontendStack: optionalText(200),
   note: optionalText(300),
-  imageUrl: optionalUrl,
+  imageUrl: optionalImageUrl,
   repoUrl: optionalUrl,
   frontendRepoUrl: optionalUrl,
   demoUrl: optionalUrl,
@@ -139,7 +137,7 @@ export async function saveProject(id: string | null, _prev: FormState, formData:
   try {
     if (existing) {
       await db.project.update({ where: { id: existing.id }, data });
-      if (existing.imageUrl !== data.imageUrl) await deleteBlob(existing.imageUrl);
+      if (existing.imageUrl !== data.imageUrl) await deleteUpload(existing.imageUrl);
     } else {
       await db.project.create({ data });
     }
@@ -157,7 +155,7 @@ export async function deleteProject(id: string) {
   const project = await db.project.findUnique({ where: { id } });
   if (project) {
     await db.project.delete({ where: { id } });
-    await deleteBlob(project.imageUrl);
+    await deleteUpload(project.imageUrl);
   }
   refreshPublicSite();
   revalidatePath("/admin/projects");
@@ -247,7 +245,7 @@ const postSchema = z.object({
   slug: text(80).refine((v) => v === "" || SLUG_PATTERN.test(v), "Faqat kichik lotin harflari, raqamlar va '-'."),
   excerpt: optionalText(300),
   content: text(100_000, "Matn kiriting."),
-  coverUrl: optionalUrl,
+  coverUrl: optionalImageUrl,
   published: z.boolean(),
 });
 
@@ -286,7 +284,7 @@ export async function savePost(id: string | null, _prev: FormState, formData: Fo
   try {
     if (existing) {
       await db.post.update({ where: { id: existing.id }, data });
-      if (existing.coverUrl !== data.coverUrl) await deleteBlob(existing.coverUrl);
+      if (existing.coverUrl !== data.coverUrl) await deleteUpload(existing.coverUrl);
     } else {
       await db.post.create({ data });
     }
@@ -304,7 +302,7 @@ export async function deletePost(id: string) {
   const post = await db.post.findUnique({ where: { id } });
   if (post) {
     await db.post.delete({ where: { id } });
-    await deleteBlob(post.coverUrl);
+    await deleteUpload(post.coverUrl);
     refreshBlog(post.slug);
   }
   revalidatePath("/admin/posts");

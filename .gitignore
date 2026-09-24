@@ -42,3 +42,9 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# netlify
+.netlify
+
+# local image uploads (next dev / next start)
+/.uploads

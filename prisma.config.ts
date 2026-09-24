@@ -8,7 +8,8 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Netlify Database sets NETLIFY_DB_URL during builds, where `prisma migrate deploy` runs.
+    url: process.env["DATABASE_URL"] ?? process.env["NETLIFY_DB_URL"],
     // Optional: only needed locally when the default shadow database cannot be created.
     shadowDatabaseUrl: process.env["SHADOW_DATABASE_URL"],
   },

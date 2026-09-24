@@ -1,0 +1,7 @@
+[build]
+  # Migrations run before `next build` because the build pre-renders pages from the database.
+  command = "prisma generate && prisma migrate deploy && next build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

@@ -7,12 +7,12 @@ export function isSafeUrl(value: string, protocols = ["http:", "https:"]) {
   }
 }
 
-/** next/image can only optimize local files and hosts listed in next.config.ts. */
+/** A path on this site like /images/a.webp; rejects protocol-relative //host and backslash tricks. */
+export function isLocalPath(value: string) {
+  return /^\/(?![/\\])[^\s\\]*$/.test(value);
+}
+
+/** next/image only optimizes local paths, which include uploads served from /uploads/... */
 export function isOptimizableImage(src: string) {
-  if (src.startsWith("/")) return true;
-  try {
-    return new URL(src).hostname.endsWith(".public.blob.vercel-storage.com");
-  } catch {
-    return false;
-  }
+  return isLocalPath(src);
 }
