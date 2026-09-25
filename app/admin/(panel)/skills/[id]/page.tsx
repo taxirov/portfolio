@@ -13,7 +13,10 @@ export default async function EditSkillPage({ params }: PageProps<"/admin/skills
   const { id } = await params;
   const [skill, categories] = await Promise.all([
     db.skill.findUnique({ where: { id } }),
-    db.skillCategory.findMany({ select: { id: true, title: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
+    db.skillCategory.findMany({
+      select: { id: true, titleUz: true, titleRu: true, titleEn: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    }),
   ]);
   if (!skill) notFound();
 

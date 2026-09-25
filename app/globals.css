@@ -5,6 +5,12 @@
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Poppins has no Cyrillic: Russian pages and Russian content blocks switch to Montserrat. */
+[lang="ru"],
+[lang="ru"] body {
+  font-family: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 6rem;

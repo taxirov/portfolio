@@ -4,6 +4,7 @@ import { saveProject } from "@/app/admin/actions";
 import { PageHeader } from "@/components/admin/page-header";
 import { ProjectForm } from "@/components/admin/project-form";
 import { db } from "@/lib/db";
+import { t } from "@/lib/i18n";
 import { requireAdmin } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Loyihani tahrirlash" };
@@ -16,7 +17,7 @@ export default async function EditProjectPage({ params }: PageProps<"/admin/proj
 
   return (
     <>
-      <PageHeader title={project.title} back="/admin/projects" />
+      <PageHeader title={t(project, "title", "uz")} back="/admin/projects" />
       <ProjectForm action={saveProject.bind(null, project.id)} project={project} />
     </>
   );

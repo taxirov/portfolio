@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { deletePost, togglePost } from "@/app/admin/actions";
 import { PageHeader } from "@/components/admin/page-header";
 import { RowActions } from "@/components/admin/row-actions";
-import { formatDate } from "@/components/site/post-card";
 import { db } from "@/lib/db";
+import { formatDate, t } from "@/lib/i18n";
 import { requireAdmin } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Blog" };
@@ -12,7 +12,18 @@ export default async function PostsPage() {
   await requireAdmin();
   const posts = await db.post.findMany({
     orderBy: [{ publishedAt: { sort: "desc", nulls: "first" } }, { createdAt: "desc" }],
-    select: { id: true, title: true, slug: true, published: true, publishedAt: true, updatedAt: true, views: true, shares: true },
+    select: {
+      id: true,
+      titleUz: true,
+      titleRu: true,
+      titleEn: true,
+      slug: true,
+      published: true,
+      publishedAt: true,
+      updatedAt: true,
+      views: true,
+      shares: true,
+    },
   });
 
   return (
@@ -26,7 +37,7 @@ export default async function PostsPage() {
             <li key={post.id} className="flex items-center gap-4 p-3 md:p-4">
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-slate-800">
-                  {post.title}
+                  {t(post, "title", "uz")}
                   {!post.published && (
                     <span className="ml-2 whitespace-nowrap rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">
                       qoralama
@@ -35,7 +46,7 @@ export default async function PostsPage() {
                 </p>
                 <p className="truncate text-sm text-slate-500">
                   /blogs/{post.slug}
-                  {post.publishedAt && <> · {formatDate(post.publishedAt)}</>}
+                  {post.publishedAt && <> · {formatDate(post.publishedAt, "uz")}</>}
                   {post.published && (
                     <>
                       {" "}
@@ -50,7 +61,7 @@ export default async function PostsPage() {
                 published={post.published}
                 onToggle={togglePost.bind(null, post.id, !post.published)}
                 onDelete={deletePost.bind(null, post.id)}
-                confirmText={`"${post.title}" postini o'chirasizmi?`}
+                confirmText={`"${t(post, "title", "uz")}" postini o'chirasizmi?`}
               />
             </li>
           ))}

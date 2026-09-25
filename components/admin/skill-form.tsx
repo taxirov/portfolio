@@ -4,19 +4,20 @@ import Link from "next/link";
 import { useActionState } from "react";
 import type { FormState } from "@/app/admin/actions";
 import type { Skill, SkillCategory } from "@/lib/generated/prisma/client";
+import { t } from "@/lib/i18n";
 import { CheckboxField, FormError, SelectField, SubmitButton, TextField } from "./fields";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
   skill?: Skill;
-  categories: Pick<SkillCategory, "id" | "title">[];
+  categories: Pick<SkillCategory, "id" | "titleUz" | "titleRu" | "titleEn">[];
   /** Preselected category for a new skill (from ?category=). */
   categoryId?: string;
 };
 
 export function SkillForm({ action, skill, categories, categoryId }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
-  const categoryOptions = categories.map((category) => ({ value: category.id, label: category.title }));
+  const categoryOptions = categories.map((category) => ({ value: category.id, label: t(category, "title", "uz") }));
 
   return (
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">

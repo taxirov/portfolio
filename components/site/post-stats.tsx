@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import type { Dictionary } from "@/lib/dictionaries";
+import { fill, plural, type Locale, type PluralForms } from "@/lib/i18n";
 
 type Counts = { views: number; shares: number };
-
-const compact = new Intl.NumberFormat("en", { notation: "compact" });
 
 async function track(slug: string, kind: "view" | "share"): Promise<Counts | null> {
   try {
@@ -20,8 +20,10 @@ async function track(slug: string, kind: "view" | "share"): Promise<Counts | nul
   }
 }
 
+type ViewCountProps = { slug: string; initial: number; locale: Locale; forms: PluralForms };
+
 /** Counts the visit once per tab session and shows the live view total. */
-export function ViewCount({ slug, initial }: { slug: string; initial: number }) {
+export function ViewCount({ slug, initial, locale, forms }: ViewCountProps) {
   const [views, setViews] = useState(initial);
 
   useEffect(() => {
@@ -36,17 +38,24 @@ export function ViewCount({ slug, initial }: { slug: string; initial: number }) 
   }, [slug]);
 
   return (
-    <span title={`${views} views`}>
-      <i className="bi bi-eye" aria-hidden /> {compact.format(views)} {views === 1 ? "view" : "views"}
+    <span>
+      <i className="bi bi-eye" aria-hidden /> {plural(forms, views, locale)}
     </span>
   );
 }
 
 const noSubscribe = () => () => {};
 
-type ShareBarProps = { slug: string; title: string; url: string; initial: number };
+type ShareBarProps = {
+  slug: string;
+  title: string;
+  url: string;
+  initial: number;
+  locale: Locale;
+  dict: Dictionary["blog"];
+};
 
-export function ShareBar({ slug, title, url, initial }: ShareBarProps) {
+export function ShareBar({ slug, title, url, initial, locale, dict }: ShareBarProps) {
   const [shares, setShares] = useState(initial);
   const [copied, setCopied] = useState(false);
   // The native share sheet exists mostly on phones; the server render assumes it does not.
@@ -61,10 +70,10 @@ export function ShareBar({ slug, title, url, initial }: ShareBarProps) {
   const u = encodeURIComponent(url);
   const t = encodeURIComponent(title);
   const targets = [
-    { label: "Telegram", icon: "bi-telegram", href: `https://t.me/share/url?url=${u}&text=${t}` },
-    { label: "X", icon: "bi-twitter-x", href: `https://x.com/intent/post?url=${u}&text=${t}` },
-    { label: "LinkedIn", icon: "bi-linkedin", href: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
-    { label: "Facebook", icon: "bi-facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+    { name: "Telegram", icon: "bi-telegram", href: `https://t.me/share/url?url=${u}&text=${t}` },
+    { name: "X", icon: "bi-twitter-x", href: `https://x.com/intent/post?url=${u}&text=${t}` },
+    { name: "LinkedIn", icon: "bi-linkedin", href: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
+    { name: "Facebook", icon: "bi-facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
   ];
   const button =
     "flex size-10 items-center justify-center rounded-full bg-white text-lg text-slate-600 shadow-sm transition hover:text-indigo-600 hover:shadow";
@@ -72,22 +81,25 @@ export function ShareBar({ slug, title, url, initial }: ShareBarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="mr-1 text-sm text-slate-500">
-        Share · {compact.format(shares)} {shares === 1 ? "share" : "shares"}
+        {dict.share} · {plural(dict.shares, shares, locale)}
       </span>
-      {targets.map((target) => (
-        <a
-          key={target.label}
-          href={target.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={count}
-          title={`Share on ${target.label}`}
-          aria-label={`Share on ${target.label}`}
-          className={button}
-        >
-          <i className={`bi ${target.icon}`} aria-hidden />
-        </a>
-      ))}
+      {targets.map((target) => {
+        const label = fill(dict.shareOn, { name: target.name });
+        return (
+          <a
+            key={target.name}
+            href={target.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={count}
+            title={label}
+            aria-label={label}
+            className={button}
+          >
+            <i className={`bi ${target.icon}`} aria-hidden />
+          </a>
+        );
+      })}
       <button
         type="button"
         onClick={async () => {
@@ -100,8 +112,8 @@ export function ShareBar({ slug, title, url, initial }: ShareBarProps) {
             // Clipboard can be unavailable (http, old browsers); nothing to count then.
           }
         }}
-        title={copied ? "Copied!" : "Copy link"}
-        aria-label="Copy link"
+        title={copied ? dict.copied : dict.copyLink}
+        aria-label={dict.copyLink}
         className={button}
       >
         <i className={`bi ${copied ? "bi-check-lg text-green-600" : "bi-link-45deg"}`} aria-hidden />
@@ -114,8 +126,8 @@ export function ShareBar({ slug, title, url, initial }: ShareBarProps) {
               // Cancelled by the user.
             });
           }}
-          title="More"
-          aria-label="More sharing options"
+          title={dict.moreOptions}
+          aria-label={dict.moreOptions}
           className={button}
         >
           <i className="bi bi-share" aria-hidden />

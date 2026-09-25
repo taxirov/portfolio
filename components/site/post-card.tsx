@@ -1,16 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { PostListItem } from "@/lib/data";
+import { formatDate, pick, t, type Locale } from "@/lib/i18n";
 import { isOptimizableImage } from "@/lib/url";
 
-export function formatDate(date: Date | null) {
-  return date ? new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "Asia/Tashkent" }).format(date) : "";
-}
-
-export function PostCard({ post }: { post: PostListItem }) {
+export function PostCard({ post, locale, readMore }: { post: PostListItem; locale: Locale; readMore: string }) {
+  const excerpt = pick(post, "excerpt", locale);
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
-      <Link href={`/blogs/${post.slug}`} className="flex flex-1 flex-col">
+      <Link href={`/${locale}/blogs/${post.slug}`} className="flex flex-1 flex-col">
         {post.coverUrl && (
           <div className="relative aspect-[2/1] bg-slate-100">
             <Image
@@ -25,7 +23,7 @@ export function PostCard({ post }: { post: PostListItem }) {
         )}
         <div className="flex flex-1 flex-col gap-2 p-4">
           <p className="text-sm text-slate-500">
-            <time dateTime={post.publishedAt?.toISOString()}>{formatDate(post.publishedAt)}</time>
+            <time dateTime={post.publishedAt?.toISOString()}>{formatDate(post.publishedAt, locale)}</time>
             {post.views > 0 && (
               <>
                 {" "}
@@ -33,10 +31,16 @@ export function PostCard({ post }: { post: PostListItem }) {
               </>
             )}
           </p>
-          <h3 className="text-lg font-semibold text-slate-800 group-hover:text-indigo-600">{post.title}</h3>
-          {post.excerpt && <p className="text-slate-600">{post.excerpt}</p>}
+          <h3 className="text-lg font-semibold text-slate-800 group-hover:text-indigo-600">
+            {t(post, "title", locale)}
+          </h3>
+          {excerpt.text && (
+            <p lang={excerpt.lang} className="text-slate-600">
+              {excerpt.text}
+            </p>
+          )}
           <span className="mt-auto pt-2 text-sm font-semibold text-indigo-600">
-            Read more <i className="bi bi-arrow-right" aria-hidden />
+            {readMore} <i className="bi bi-arrow-right" aria-hidden />
           </span>
         </div>
       </Link>

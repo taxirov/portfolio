@@ -48,9 +48,13 @@ export type SkillGroup = Awaited<ReturnType<typeof getSkillGroups>>[number];
 
 const postListSelect = {
   id: true,
-  title: true,
+  titleUz: true,
+  titleRu: true,
+  titleEn: true,
   slug: true,
-  excerpt: true,
+  excerptUz: true,
+  excerptRu: true,
+  excerptEn: true,
   coverUrl: true,
   publishedAt: true,
   views: true,

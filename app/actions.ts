@@ -4,6 +4,8 @@ import { after } from "next/server";
 import { z } from "zod";
 import { clientIpHash } from "@/lib/client-ip";
 import { db } from "@/lib/db";
+import { getDictionary, type Dictionary } from "@/lib/dictionaries";
+import { DEFAULT_LOCALE, fill, hasLocale } from "@/lib/i18n";
 import { notifyTelegram } from "@/lib/notify";
 import { profile } from "@/lib/profile";
 
@@ -20,13 +22,12 @@ const MAX_MESSAGES_PER_HOUR = 5;
 
 const field = () => z.preprocess((v) => v ?? "", z.string().trim());
 
-const contactSchema = z.object({
-  name: field().pipe(z.string().min(1, "Please enter your name.").max(80, "Name is too long.")),
-  email: field().pipe(z.email("Please enter a valid email address.").max(200)),
-  message: field().pipe(
-    z.string().min(10, "Message should be at least 10 characters.").max(3000, "Message is too long (3000 max)."),
-  ),
-});
+const contactSchema = (t: Dictionary["contact"]) =>
+  z.object({
+    name: field().pipe(z.string().min(1, t.nameRequired).max(80, t.nameTooLong)),
+    email: field().pipe(z.email(t.emailInvalid).max(200, t.emailInvalid)),
+    message: field().pipe(z.string().min(10, t.messageTooShort).max(3000, t.messageTooLong)),
+  });
 
 export async function sendMessage(_prev: ContactState, formData: FormData): Promise<ContactState> {
   const values = {
@@ -35,13 +36,17 @@ export async function sendMessage(_prev: ContactState, formData: FormData): Prom
     message: String(formData.get("message") ?? ""),
   };
 
+  // The form sends the page language so errors come back in it.
+  const lang = String(formData.get("lang") ?? "");
+  const t = getDictionary(hasLocale(lang) ? lang : DEFAULT_LOCALE).contact;
+
   // Honeypot: hidden from people, bots fill it in. Pretend it worked.
   if (String(formData.get("company") ?? "") !== "") return { ok: true };
 
-  const parsed = contactSchema.safeParse(values);
+  const parsed = contactSchema(t).safeParse(values);
   if (!parsed.success) {
     return {
-      error: "Please check the highlighted fields.",
+      error: t.checkFields,
       fieldErrors: z.flattenError(parsed.error).fieldErrors,
       values,
     };
@@ -53,7 +58,7 @@ export async function sendMessage(_prev: ContactState, formData: FormData): Prom
       where: { ipHash, createdAt: { gt: new Date(Date.now() - 60 * 60 * 1000) } },
     });
     if (recent >= MAX_MESSAGES_PER_HOUR) {
-      return { error: `Too many messages. Please try again later or email ${profile.email}.`, values };
+      return { error: fill(t.tooMany, { email: profile.email }), values };
     }
 
     const { name, email, message } = parsed.data;
@@ -64,7 +69,7 @@ export async function sendMessage(_prev: ContactState, formData: FormData): Prom
     );
   } catch (error) {
     console.error("[contact] sendMessage", error);
-    return { error: `Something went wrong. Please email me directly at ${profile.email}.`, values };
+    return { error: fill(t.failed, { email: profile.email }), values };
   }
 
   return { ok: true };

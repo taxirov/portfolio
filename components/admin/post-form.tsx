@@ -5,8 +5,11 @@ import { useActionState, useState } from "react";
 import type { FormState } from "@/app/admin/actions";
 import { Markdown } from "@/components/markdown";
 import type { Post } from "@/lib/generated/prisma/client";
+import { LOCALES, LOCALE_SUFFIX, type Locale } from "@/lib/i18n";
+import { profile } from "@/lib/profile";
 import { slugify } from "@/lib/slug";
 import { CheckboxField, Field, FormError, SubmitButton, TextField } from "./fields";
+import { LangTabs } from "./lang-tabs";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -16,75 +19,94 @@ type Props = {
 const textareaClass =
   "min-h-96 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm leading-relaxed text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200";
 
+type PerLocale = Record<Locale, string>;
+
+function perLocale(post: Post | undefined, field: "title" | "content"): PerLocale {
+  return Object.fromEntries(
+    LOCALES.map((locale) => [locale, post?.[`${field}${LOCALE_SUFFIX[locale]}`] ?? ""]),
+  ) as PerLocale;
+}
+
 export function PostForm({ action, post }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
-  const [content, setContent] = useState(post?.content ?? "");
-  const [title, setTitle] = useState(post?.title ?? "");
-  const [tab, setTab] = useState<"write" | "preview">("write");
+  const [titles, setTitles] = useState(() => perLocale(post, "title"));
+  const [contents, setContents] = useState(() => perLocale(post, "content"));
+  const [mode, setMode] = useState<"write" | "preview">("write");
+  // Same rule as the server: the slug comes from the English, then the Uzbek title.
+  const autoSlug = slugify(titles.en || titles.uz || titles.ru);
 
   return (
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">
       <FormError state={state} />
 
-      <Field name="title" label="Sarlavha" state={state}>
-        <input
-          id="title"
-          name="title"
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          aria-invalid={!!state?.fieldErrors?.title}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-lg font-semibold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-        />
-      </Field>
+      <LangTabs state={state} fields={["title", "excerpt", "content"]}>
+        {(locale, sfx) => (
+          <>
+            <Field name={`title${sfx}`} label="Sarlavha" state={state}>
+              <input
+                id={`title${sfx}`}
+                name={`title${sfx}`}
+                value={titles[locale]}
+                onChange={(e) => setTitles({ ...titles, [locale]: e.target.value })}
+                aria-invalid={!!state?.fieldErrors?.[`title${sfx}`]}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-lg font-semibold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              />
+            </Field>
+
+            <TextField
+              name={`excerpt${sfx}`}
+              label="Qisqa tavsif"
+              state={state}
+              defaultValue={post?.[`excerpt${sfx}`]}
+              hint="Ro'yxatda va Google/Telegram preview'da ko'rinadi."
+            />
+
+            <Field name={`content${sfx}`} label="Matn (Markdown)" state={state}>
+              <div className="flex gap-1 text-sm">
+                {(["write", "preview"] as const).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setMode(key)}
+                    className={`rounded-md px-3 py-1.5 font-medium ${
+                      mode === key ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {key === "write" ? "Yozish" : "Ko'rish"}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                id={`content${sfx}`}
+                name={`content${sfx}`}
+                value={contents[locale]}
+                onChange={(e) => setContents({ ...contents, [locale]: e.target.value })}
+                aria-invalid={!!state?.fieldErrors?.[`content${sfx}`]}
+                className={`${textareaClass} ${mode === "write" ? "" : "hidden"}`}
+                placeholder={"## Sarlavha\n\nMatn, **qalin**, `kod`, [havola](https://...)\n\n```ts\nconsole.log('salom')\n```"}
+              />
+              {mode === "preview" && (
+                <div className="min-h-96 rounded-lg border border-slate-200 p-4">
+                  {contents[locale].trim() ? (
+                    <Markdown>{contents[locale]}</Markdown>
+                  ) : (
+                    <p className="text-slate-400">Hali matn yo&apos;q.</p>
+                  )}
+                </div>
+              )}
+            </Field>
+          </>
+        )}
+      </LangTabs>
 
       <TextField
         name="slug"
         label="Slug (manzil)"
         state={state}
         defaultValue={post?.slug}
-        placeholder={slugify(title) || "post-manzili"}
-        hint={`saad.uz/blogs/${slugify(title) || "..."}. Bo'sh qolsa, sarlavhadan yasaladi.`}
+        placeholder={autoSlug || "post-manzili"}
+        hint={`saad.uz/uz/blogs/${autoSlug || "..."}. Bo'sh qolsa, inglizcha (bo'lmasa o'zbekcha) sarlavhadan yasaladi. Barcha tillarda bir xil.`}
       />
-
-      <TextField
-        name="excerpt"
-        label="Qisqa tavsif"
-        state={state}
-        defaultValue={post?.excerpt}
-        hint="Ro'yxatda va Google/Telegram preview'da ko'rinadi."
-      />
-
-      <Field name="content" label="Matn (Markdown)" state={state}>
-        <div className="flex gap-1 text-sm">
-          {(["write", "preview"] as const).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={`rounded-md px-3 py-1.5 font-medium ${
-                tab === key ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {key === "write" ? "Yozish" : "Ko'rish"}
-            </button>
-          ))}
-        </div>
-        <textarea
-          id="content"
-          name="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          aria-invalid={!!state?.fieldErrors?.content}
-          className={`${textareaClass} ${tab === "write" ? "" : "hidden"}`}
-          placeholder={"## Sarlavha\n\nMatn, **qalin**, `kod`, [havola](https://...)\n\n```ts\nconsole.log('salom')\n```"}
-        />
-        {tab === "preview" && (
-          <div className="min-h-96 rounded-lg border border-slate-200 p-4">
-            {content.trim() ? <Markdown>{content}</Markdown> : <p className="text-slate-400">Hali matn yo&apos;q.</p>}
-          </div>
-        )}
-      </Field>
 
       <fieldset className="grid gap-5 md:grid-cols-2">
         <legend className="mb-3 text-sm font-semibold text-slate-500">Muqova rasmi (ixtiyoriy)</legend>
@@ -115,7 +137,7 @@ export function PostForm({ action, post }: Props) {
         </Link>
         {post?.published && (
           <a
-            href={`/blogs/${post.slug}`}
+            href={`${profile.siteUrl}/uz/blogs/${post.slug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-sm text-indigo-600 hover:underline"

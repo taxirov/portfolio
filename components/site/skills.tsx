@@ -1,19 +1,22 @@
 import type { SkillGroup } from "@/lib/data";
+import { t } from "@/lib/i18n";
+import { getI18n } from "@/lib/locale";
 import { SectionTitle } from "./section-title";
 
-export function Skills({ groups }: { groups: SkillGroup[] }) {
+export async function Skills({ groups }: { groups: SkillGroup[] }) {
   if (groups.length === 0) return null;
+  const { locale, dict } = await getI18n();
 
   return (
     <section id="skills" className="flex flex-col gap-4 pt-12 md:pt-24">
-      <SectionTitle>Skills</SectionTitle>
+      <SectionTitle>{dict.skills.title}</SectionTitle>
       {groups.map((group) => (
         <div
           key={group.id}
           className="flex flex-col gap-3 rounded-2xl bg-gradient-to-b from-stone-50 to-white p-4 shadow-md"
         >
           <h3 className="text-lg text-slate-500">
-            <i className={`bi ${group.icon}`} aria-hidden /> {group.title}
+            <i className={`bi ${group.icon}`} aria-hidden /> {t(group, "title", locale)}
           </h3>
           <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {group.skills.map((skill) => (

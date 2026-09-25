@@ -1,11 +1,15 @@
 import { ImageResponse } from "next/og";
+import { getDictionary } from "@/lib/dictionaries";
+import { hasLocale, DEFAULT_LOCALE } from "@/lib/i18n";
 import { profile } from "@/lib/profile";
 
-export const alt = `${profile.name} - ${profile.title}`;
+export const alt = profile.name;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpengraphImage() {
+export default async function OpengraphImage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const dict = getDictionary(hasLocale(lang) ? lang : DEFAULT_LOCALE);
   return new ImageResponse(
     (
       <div
@@ -22,7 +26,7 @@ export default function OpengraphImage() {
       >
         <div style={{ fontSize: 96, fontWeight: 700 }}>{profile.name}</div>
         <div style={{ fontSize: 44, color: "#64748b", marginTop: 16, textTransform: "uppercase" }}>
-          {profile.title}
+          {dict.profile.jobTitle}
         </div>
         <div style={{ fontSize: 32, color: "#6366f1", marginTop: 48 }}>saad.uz</div>
       </div>

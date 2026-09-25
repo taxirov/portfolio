@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import type { FormState } from "@/app/admin/actions";
 import type { Project } from "@/lib/generated/prisma/client";
 import { CheckboxField, Field, FormError, SubmitButton, TextField } from "./fields";
+import { LangTabs } from "./lang-tabs";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -18,15 +19,27 @@ export function ProjectForm({ action, project }: Props) {
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">
       <FormError state={state} />
 
-      <TextField name="title" label="Nomi" state={state} defaultValue={project?.title} required />
-      <TextField
-        name="description"
-        label="Tavsif"
-        state={state}
-        defaultValue={project?.description}
-        multiline
-        required
-      />
+      <LangTabs state={state} fields={["title", "description", "note"]}>
+        {(_, sfx) => (
+          <>
+            <TextField name={`title${sfx}`} label="Nomi" state={state} defaultValue={project?.[`title${sfx}`]} />
+            <TextField
+              name={`description${sfx}`}
+              label="Tavsif"
+              state={state}
+              defaultValue={project?.[`description${sfx}`]}
+              multiline
+            />
+            <TextField
+              name={`note${sfx}`}
+              label="Qo'shimcha izoh"
+              state={state}
+              defaultValue={project?.[`note${sfx}`]}
+              hint="Masalan, demo uchun login/parol."
+            />
+          </>
+        )}
+      </LangTabs>
 
       <div className="grid gap-5 md:grid-cols-2">
         <TextField
@@ -44,14 +57,6 @@ export function ProjectForm({ action, project }: Props) {
           placeholder="SvelteKit, Tailwind"
         />
       </div>
-
-      <TextField
-        name="note"
-        label="Qo'shimcha izoh"
-        state={state}
-        defaultValue={project?.note}
-        hint="Masalan, demo uchun login/parol."
-      />
 
       <fieldset className="grid gap-5 md:grid-cols-2">
         <legend className="mb-3 text-sm font-semibold text-slate-500">Rasm</legend>

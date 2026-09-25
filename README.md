@@ -2,9 +2,17 @@
 
 Personal portfolio of Saad Takhir, built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, Prisma 7 and PostgreSQL.
 
-- **saad.uz**: the public portfolio. Profile data lives in `lib/`; skills, projects, social links and blog posts come from the database. The contact form stores messages in the database.
-- **saad.uz/blogs**: the blog. Posts are written in Markdown in the admin panel.
+- **saad.uz/{uz,ru,en}**: the public portfolio in Uzbek, Russian and English. Profile data lives in `lib/`; skills, projects, social links and blog posts come from the database. The contact form stores messages in the database.
+- **saad.uz/{lang}/blogs**: the blog. Posts are written in Markdown in the admin panel.
 - **app.saad.uz**: a password-protected admin panel for blog posts, contact messages, projects, skills and social links. `proxy.ts` rewrites that host to `/admin`.
+
+## Languages
+
+- Pages live under `app/[lang]` (`/uz`, `/ru`, `/en`). `proxy.ts` sends any other path (including old links like `/blogs/...`) to the visitor's language: the `lang` cookie set by the switcher, then `Accept-Language`, then English.
+- Interface text is in `lib/dictionaries/{uz,ru,en}.ts`; the English file defines the shape the others must match.
+- Database content that is translated (project title, description and note; skill group names; post title, excerpt and content) has one column per language, e.g. `titleUz`, `titleRu`, `titleEn`. The admin forms show one tab per language. An empty translation falls back to English, then Uzbek, then Russian (`pick()` in `lib/i18n.ts`), and a post shown in another language says so.
+- Poppins has no Cyrillic, so Russian pages and Russian content blocks use Montserrat (`app/globals.css`).
+- The admin panel (`app/admin`) is a separate root layout and stays in Uzbek.
 
 ## Local development
 
@@ -17,7 +25,7 @@ npm run db:seed               # import the original projects and social links
 npm run dev
 ```
 
-- Site: http://localhost:3000
+- Site: http://localhost:3000 (redirects to /uz, /ru or /en)
 - Admin: http://app.localhost:3000 (or http://localhost:3000/admin)
 
 ## Environment variables

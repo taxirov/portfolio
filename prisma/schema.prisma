@@ -7,14 +7,21 @@ datasource db {
   provider = "postgresql"
 }
 
+/// Translated fields have Uz / Ru / En columns; an empty one falls back to another language (lib/i18n.ts).
 model Project {
   id              String   @id @default(cuid())
-  title           String
-  description     String
+  titleUz         String?
+  titleRu         String?
+  titleEn         String?
+  descriptionUz   String?
+  descriptionRu   String?
+  descriptionEn   String?
   imageUrl        String?
   backendStack    String?
   frontendStack   String?
-  note            String?
+  noteUz          String?
+  noteRu          String?
+  noteEn          String?
   repoUrl         String?
   frontendRepoUrl String?
   demoUrl         String?
@@ -56,11 +63,17 @@ model Message {
 
 model Post {
   id          String      @id @default(cuid())
-  title       String
+  titleUz     String?
+  titleRu     String?
+  titleEn     String?
   slug        String      @unique
-  excerpt     String?
+  excerptUz   String?
+  excerptRu   String?
+  excerptEn   String?
   /// Markdown
-  content     String
+  contentUz   String?
+  contentRu   String?
+  contentEn   String?
   coverUrl    String?
   published   Boolean     @default(false)
   publishedAt DateTime?
@@ -104,7 +117,9 @@ model LoginAttempt {
 /// Skill groups on the home page ("Backend", "Tools", ...).
 model SkillCategory {
   id        String   @id @default(cuid())
-  title     String
+  titleUz   String?
+  titleRu   String?
+  titleEn   String?
   /// Bootstrap Icons class, e.g. bi-cloud
   icon      String
   sortOrder Int      @default(0)

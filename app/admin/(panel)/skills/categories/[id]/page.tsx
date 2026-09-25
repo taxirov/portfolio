@@ -4,6 +4,7 @@ import { saveSkillCategory } from "@/app/admin/actions";
 import { PageHeader } from "@/components/admin/page-header";
 import { SkillCategoryForm } from "@/components/admin/skill-category-form";
 import { db } from "@/lib/db";
+import { t } from "@/lib/i18n";
 import { requireAdmin } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Bo'limni tahrirlash" };
@@ -16,7 +17,7 @@ export default async function EditSkillCategoryPage({ params }: PageProps<"/admi
 
   return (
     <>
-      <PageHeader title={category.title} back="/admin/skills" />
+      <PageHeader title={t(category, "title", "uz")} back="/admin/skills" />
       <SkillCategoryForm action={saveSkillCategory.bind(null, category.id)} category={category} />
     </>
   );

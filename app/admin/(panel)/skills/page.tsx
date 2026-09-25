@@ -9,6 +9,7 @@ import {
 import { PageHeader } from "@/components/admin/page-header";
 import { RowActions } from "@/components/admin/row-actions";
 import { db } from "@/lib/db";
+import { t } from "@/lib/i18n";
 import { requireAdmin } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Ko'nikmalar" };
@@ -28,7 +29,7 @@ export default async function SkillsPage() {
           <section key={category.id} className="flex flex-col gap-2">
             <div className="flex items-center gap-2 px-1">
               <h2 className="flex min-w-0 flex-1 items-center gap-2 font-semibold text-slate-600">
-                <i className={`bi ${category.icon}`} aria-hidden /> {category.title}
+                <i className={`bi ${category.icon}`} aria-hidden /> {t(category, "title", "uz")}
                 <span className="text-sm font-normal text-slate-400">#{category.sortOrder}</span>
                 {!category.published && (
                   <span className="whitespace-nowrap rounded bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-500">
@@ -49,7 +50,7 @@ export default async function SkillsPage() {
                 published={category.published}
                 onToggle={toggleSkillCategory.bind(null, category.id, !category.published)}
                 onDelete={deleteSkillCategory.bind(null, category.id)}
-                confirmText={`"${category.title}" bo'limini o'chirasizmi?`}
+                confirmText={`"${t(category, "title", "uz")}" bo'limini o'chirasizmi?`}
               />
             </div>
             {category.skills.length === 0 ? (

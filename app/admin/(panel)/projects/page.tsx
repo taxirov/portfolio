@@ -4,6 +4,7 @@ import { deleteProject, toggleProject } from "@/app/admin/actions";
 import { PageHeader } from "@/components/admin/page-header";
 import { RowActions } from "@/components/admin/row-actions";
 import { db } from "@/lib/db";
+import { t } from "@/lib/i18n";
 import { isOptimizableImage } from "@/lib/url";
 import { requireAdmin } from "@/lib/session";
 
@@ -36,14 +37,14 @@ export default async function ProjectsPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-slate-800">
-                  {project.title}
+                  {t(project, "title", "uz")}
                   {!project.published && (
                     <span className="ml-2 whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">
                       yashirin
                     </span>
                   )}
                 </p>
-                <p className="truncate text-sm text-slate-500">{project.description}</p>
+                <p className="truncate text-sm text-slate-500">{t(project, "description", "uz")}</p>
               </div>
               <span className="hidden text-sm text-slate-400 sm:block">#{project.sortOrder}</span>
               <RowActions
@@ -51,7 +52,7 @@ export default async function ProjectsPage() {
                 published={project.published}
                 onToggle={toggleProject.bind(null, project.id, !project.published)}
                 onDelete={deleteProject.bind(null, project.id)}
-                confirmText={`"${project.title}" loyihasini o'chirasizmi?`}
+                confirmText={`"${t(project, "title", "uz")}" loyihasini o'chirasizmi?`}
               />
             </li>
           ))}

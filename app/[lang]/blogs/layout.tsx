@@ -1,7 +1,7 @@
 import { Footer } from "@/components/site/footer";
 import { Navbar } from "@/components/site/navbar";
 
-export default function BlogLayout({ children }: LayoutProps<"/blogs">) {
+export default function BlogLayout({ children }: LayoutProps<"/[lang]/blogs">) {
   return (
     <div className="min-h-screen bg-gradient-to-r from-slate-100 to-slate-200">
       <Navbar />

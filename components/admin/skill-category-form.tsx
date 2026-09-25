@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import type { FormState } from "@/app/admin/actions";
 import type { SkillCategory } from "@/lib/generated/prisma/client";
 import { CheckboxField, FormError, SubmitButton, TextField } from "./fields";
+import { LangTabs } from "./lang-tabs";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -20,14 +21,17 @@ export function SkillCategoryForm({ action, category }: Props) {
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">
       <FormError state={state} />
 
-      <TextField
-        name="title"
-        label="Nomi"
-        state={state}
-        defaultValue={category?.title}
-        placeholder="Databases"
-        required
-      />
+      <LangTabs state={state} fields={["title"]}>
+        {(locale, sfx) => (
+          <TextField
+            name={`title${sfx}`}
+            label="Nomi"
+            state={state}
+            defaultValue={category?.[`title${sfx}`]}
+            placeholder={{ uz: "Ma'lumotlar bazalari", ru: "Базы данных", en: "Databases" }[locale]}
+          />
+        )}
+      </LangTabs>
 
       <div className="flex items-end gap-3">
         <div className="flex-1" onChange={(event) => setIcon((event.target as HTMLInputElement).value)}>

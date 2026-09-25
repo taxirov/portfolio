@@ -123,25 +123,51 @@ async function uploadImage(
   }
 }
 
+/** Every public page in every language, plus the sitemap. */
 function refreshPublicSite() {
-  revalidatePath("/");
+  revalidatePath("/[lang]", "layout");
+  revalidatePath("/sitemap.xml");
+}
+
+// ---------------------------------------------------------------- translations
+
+const LANG_SUFFIXES = ["Uz", "Ru", "En"] as const;
+type Translated<F extends string> = `${F}${(typeof LANG_SUFFIXES)[number]}`;
+
+/** titleUz / titleRu / titleEn form fields for one translated column. */
+function translated<F extends string>(field: F, max: number) {
+  return Object.fromEntries(LANG_SUFFIXES.map((suffix) => [`${field}${suffix}`, optionalText(max)])) as Record<
+    Translated<F>,
+    ReturnType<typeof optionalText>
+  >;
+}
+
+/** A required translated field needs at least one language; the error shows on every language tab. */
+function requireOneLanguage(value: Record<string, unknown>, ctx: z.RefinementCtx, field: string, message: string) {
+  if (LANG_SUFFIXES.some((suffix) => value[`${field}${suffix}`])) return;
+  for (const suffix of LANG_SUFFIXES) ctx.addIssue({ code: "custom", path: [`${field}${suffix}`], message });
 }
 
 // ---------------------------------------------------------------- projects
 
-const projectSchema = z.object({
-  title: text(120, "Nomini kiriting."),
-  description: text(2000, "Tavsif kiriting."),
-  backendStack: optionalText(200),
-  frontendStack: optionalText(200),
-  note: optionalText(300),
-  imageUrl: optionalImageUrl,
-  repoUrl: optionalUrl,
-  frontendRepoUrl: optionalUrl,
-  demoUrl: optionalUrl,
-  sortOrder,
-  published: z.boolean(),
-});
+const projectSchema = z
+  .object({
+    ...translated("title", 120),
+    ...translated("description", 2000),
+    ...translated("note", 300),
+    backendStack: optionalText(200),
+    frontendStack: optionalText(200),
+    imageUrl: optionalImageUrl,
+    repoUrl: optionalUrl,
+    frontendRepoUrl: optionalUrl,
+    demoUrl: optionalUrl,
+    sortOrder,
+    published: z.boolean(),
+  })
+  .superRefine((value, ctx) => {
+    requireOneLanguage(value, ctx, "title", "Kamida bitta tilda nom kiriting.");
+    requireOneLanguage(value, ctx, "description", "Kamida bitta tilda tavsif kiriting.");
+  });
 
 export async function saveProject(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
@@ -318,19 +344,21 @@ export async function toggleSkill(id: string, published: boolean) {
   revalidatePath("/admin/skills");
 }
 
-const skillCategorySchema = z.object({
-  title: text(60, "Nomini kiriting."),
-  icon: text(60, "Ikonka kiriting.").transform((value, ctx) => {
-    const icon = resolveCategoryIcon(value);
-    if (!icon) {
-      ctx.addIssue({ code: "custom", message: "Bootstrap Icons nomini kiriting, masalan: cloud yoki bi-cloud." });
-      return z.NEVER;
-    }
-    return icon;
-  }),
-  sortOrder,
-  published: z.boolean(),
-});
+const skillCategorySchema = z
+  .object({
+    ...translated("title", 60),
+    icon: text(60, "Ikonka kiriting.").transform((value, ctx) => {
+      const icon = resolveCategoryIcon(value);
+      if (!icon) {
+        ctx.addIssue({ code: "custom", message: "Bootstrap Icons nomini kiriting, masalan: cloud yoki bi-cloud." });
+        return z.NEVER;
+      }
+      return icon;
+    }),
+    sortOrder,
+    published: z.boolean(),
+  })
+  .superRefine((value, ctx) => requireOneLanguage(value, ctx, "title", "Kamida bitta tilda nom kiriting."));
 
 export async function saveSkillCategory(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
@@ -375,21 +403,19 @@ export async function toggleSkillCategory(id: string, published: boolean) {
 
 // ---------------------------------------------------------------- blog posts
 
-const postSchema = z.object({
-  title: text(160, "Sarlavha kiriting."),
-  slug: text(80).refine((v) => v === "" || SLUG_PATTERN.test(v), "Faqat kichik lotin harflari, raqamlar va '-'."),
-  excerpt: optionalText(300),
-  content: text(100_000, "Matn kiriting."),
-  coverUrl: optionalImageUrl,
-  published: z.boolean(),
-});
-
-function refreshBlog(...slugs: (string | null | undefined)[]) {
-  revalidatePath("/");
-  revalidatePath("/blogs");
-  revalidatePath("/sitemap.xml");
-  for (const slug of new Set(slugs)) if (slug) revalidatePath(`/blogs/${slug}`);
-}
+const postSchema = z
+  .object({
+    ...translated("title", 160),
+    ...translated("excerpt", 300),
+    ...translated("content", 100_000),
+    slug: text(80).refine((v) => v === "" || SLUG_PATTERN.test(v), "Faqat kichik lotin harflari, raqamlar va '-'."),
+    coverUrl: optionalImageUrl,
+    published: z.boolean(),
+  })
+  .superRefine((value, ctx) => {
+    requireOneLanguage(value, ctx, "title", "Kamida bitta tilda sarlavha kiriting.");
+    requireOneLanguage(value, ctx, "content", "Kamida bitta tilda matn kiriting.");
+  });
 
 export async function savePost(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
@@ -399,7 +425,8 @@ export async function savePost(id: string | null, _prev: FormState, formData: Fo
   if (!parsed.success) return invalid(parsed.error, values);
   const { slug: rawSlug, ...fields } = parsed.data;
 
-  const slug = rawSlug || slugify(fields.title);
+  // Slugs are Latin, so they come from the English or Uzbek title when one is given.
+  const slug = rawSlug || slugify(fields.titleEn ?? fields.titleUz ?? fields.titleRu ?? "");
   if (!slug) return { fieldErrors: { slug: ["Slug'ni qo'lda kiriting."] }, values };
 
   const existing = id ? await db.post.findUnique({ where: { id } }) : null;
@@ -428,7 +455,7 @@ export async function savePost(id: string | null, _prev: FormState, formData: Fo
     return { error: "Saqlashda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.", values };
   }
 
-  refreshBlog(slug, existing?.slug);
+  refreshPublicSite();
   redirect("/admin/posts");
 }
 
@@ -438,7 +465,7 @@ export async function deletePost(id: string) {
   if (post) {
     await db.post.delete({ where: { id } });
     await deleteUpload(post.coverUrl);
-    refreshBlog(post.slug);
+    refreshPublicSite();
   }
   revalidatePath("/admin/posts");
 }
@@ -451,7 +478,7 @@ export async function togglePost(id: string, published: boolean) {
     where: { id },
     data: { published, publishedAt: published ? (post.publishedAt ?? new Date()) : post.publishedAt },
   });
-  refreshBlog(post.slug);
+  refreshPublicSite();
   revalidatePath("/admin/posts");
 }
 

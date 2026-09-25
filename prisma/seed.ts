@@ -12,20 +12,20 @@ async function main() {
     await db.project.createMany({
       data: [
         {
-          title: "Cafe Management System",
-          description: "Order and table management system for cafes and restaurants.",
+          titleEn: "Cafe Management System",
+          descriptionEn: "Order and table management system for cafes and restaurants.",
           imageUrl: "/images/cafe.webp",
           backendStack: "TypeScript, Node.js, Express, Prisma, PostgreSQL",
           frontendStack: "TypeScript, Svelte, Tailwind, Vercel",
-          note: "Demo logins: admin / admin, waiter / waiter",
+          noteEn: "Demo logins: admin / admin, waiter / waiter",
           repoUrl: "https://github.com/taxirov/cafe_backend",
           frontendRepoUrl: "https://github.com/taxirov/cafe_frontend",
           demoUrl: "https://cafe.saad.uz",
           sortOrder: 1,
         },
         {
-          title: "Todo Web App",
-          description:
+          titleEn: "Todo Web App",
+          descriptionEn:
             "A simple task manager: add tasks, mark them as done or not done, and delete them.",
           imageUrl: "/images/todo.webp",
           frontendStack: "HTML, CSS, Tailwind, JavaScript, NGINX",
@@ -55,12 +55,12 @@ async function main() {
 
   if ((await db.skillCategory.count()) === 0) {
     const categories = [
-      { id: "languages", title: "Programming languages", icon: "bi-translate" },
-      { id: "backend", title: "Backend", icon: "bi-hdd-stack" },
-      { id: "frontend", title: "Frontend", icon: "bi-window" },
-      { id: "tools", title: "Tools", icon: "bi-wrench-adjustable-circle" },
-      { id: "infrastructure", title: "Infrastructure", icon: "bi-cloud" },
-      { id: "learning", title: "Learning now", icon: "bi-broadcast" },
+      { id: "languages", icon: "bi-translate", titleUz: "Dasturlash tillari", titleRu: "Языки программирования", titleEn: "Programming languages" },
+      { id: "backend", icon: "bi-hdd-stack", titleUz: "Backend", titleRu: "Бэкенд", titleEn: "Backend" },
+      { id: "frontend", icon: "bi-window", titleUz: "Frontend", titleRu: "Фронтенд", titleEn: "Frontend" },
+      { id: "tools", icon: "bi-wrench-adjustable-circle", titleUz: "Vositalar", titleRu: "Инструменты", titleEn: "Tools" },
+      { id: "infrastructure", icon: "bi-cloud", titleUz: "Infratuzilma", titleRu: "Инфраструктура", titleEn: "Infrastructure" },
+      { id: "learning", icon: "bi-broadcast", titleUz: "Hozir o'rganyapman", titleRu: "Изучаю сейчас", titleEn: "Learning now" },
     ];
     await db.skillCategory.createMany({ data: categories.map((c, index) => ({ ...c, sortOrder: index + 1 })) });
     console.log("Seeded skill categories");

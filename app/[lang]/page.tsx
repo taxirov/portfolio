@@ -8,7 +8,7 @@ import { Projects } from "@/components/site/projects";
 import { Skills } from "@/components/site/skills";
 import { getPublishedPosts, getPublishedProjects, getPublishedSocials, getSkillGroups } from "@/lib/data";
 
-// Admin edits call revalidatePath("/"); this is only the fallback refresh interval.
+// Admin edits revalidate every language right away; this is only the fallback refresh interval.
 export const revalidate = 300;
 
 export default async function Home() {

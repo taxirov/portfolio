@@ -12,7 +12,7 @@ export default async function NewSkillPage({ searchParams }: PageProps<"/admin/s
   await requireAdmin();
   const { category } = await searchParams;
   const categories = await db.skillCategory.findMany({
-    select: { id: true, title: true },
+    select: { id: true, titleUz: true, titleRu: true, titleEn: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
