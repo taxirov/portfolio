@@ -12,7 +12,7 @@ export default async function PostsPage() {
   await requireAdmin();
   const posts = await db.post.findMany({
     orderBy: [{ publishedAt: { sort: "desc", nulls: "first" } }, { createdAt: "desc" }],
-    select: { id: true, title: true, slug: true, published: true, publishedAt: true, updatedAt: true },
+    select: { id: true, title: true, slug: true, published: true, publishedAt: true, updatedAt: true, views: true, shares: true },
   });
 
   return (
@@ -36,6 +36,13 @@ export default async function PostsPage() {
                 <p className="truncate text-sm text-slate-500">
                   /blogs/{post.slug}
                   {post.publishedAt && <> · {formatDate(post.publishedAt)}</>}
+                  {post.published && (
+                    <>
+                      {" "}
+                      · <i className="bi bi-eye" aria-hidden /> {post.views} · <i className="bi bi-share" aria-hidden />{" "}
+                      {post.shares}
+                    </>
+                  )}
                 </p>
               </div>
               <RowActions

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { Markdown } from "@/components/markdown";
 import { formatDate } from "@/components/site/post-card";
+import { ShareBar, ViewCount } from "@/components/site/post-stats";
 import { getPublishedPost, getPublishedPosts } from "@/lib/data";
 import { profile } from "@/lib/profile";
 import { isOptimizableImage } from "@/lib/url";
@@ -51,7 +52,8 @@ export default async function PostPage({ params }: PageProps<"/blogs/[slug]">) {
       <header className="flex flex-col gap-3">
         <h1 className="text-3xl font-bold leading-tight text-slate-800 md:text-5xl">{post.title}</h1>
         <p className="text-slate-500">
-          {profile.name} · <time dateTime={post.publishedAt?.toISOString()}>{formatDate(post.publishedAt)}</time>
+          {profile.name} · <time dateTime={post.publishedAt?.toISOString()}>{formatDate(post.publishedAt)}</time> ·{" "}
+          <ViewCount slug={post.slug} initial={post.views} />
         </p>
       </header>
       {post.coverUrl && (
@@ -70,6 +72,12 @@ export default async function PostPage({ params }: PageProps<"/blogs/[slug]">) {
       <div className="rounded-2xl bg-white p-5 shadow-sm md:p-8">
         <Markdown>{post.content}</Markdown>
       </div>
+      <ShareBar
+        slug={post.slug}
+        title={post.title}
+        url={`${profile.siteUrl}/blogs/${post.slug}`}
+        initial={post.shares}
+      />
       <Link
         href="/#contact"
         className="w-fit rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white hover:bg-indigo-700"

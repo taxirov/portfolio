@@ -53,6 +53,7 @@ const postListSelect = {
   excerpt: true,
   coverUrl: true,
   publishedAt: true,
+  views: true,
 } as const;
 
 export function getPublishedPosts(take?: number) {
