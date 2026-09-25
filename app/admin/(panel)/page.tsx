@@ -5,17 +5,29 @@ import { requireAdmin } from "@/lib/session";
 
 export default async function Dashboard() {
   await requireAdmin();
-  const [messages, unread, posts, publishedPosts, projects, publishedProjects, socials, publishedSocials] =
-    await Promise.all([
-      db.message.count(),
-      db.message.count({ where: { read: false } }),
-      db.post.count(),
-      db.post.count({ where: { published: true } }),
-      db.project.count(),
-      db.project.count({ where: { published: true } }),
-      db.socialLink.count(),
-      db.socialLink.count({ where: { published: true } }),
-    ]);
+  const [
+    messages,
+    unread,
+    posts,
+    publishedPosts,
+    projects,
+    publishedProjects,
+    skills,
+    publishedSkills,
+    socials,
+    publishedSocials,
+  ] = await Promise.all([
+    db.message.count(),
+    db.message.count({ where: { read: false } }),
+    db.post.count(),
+    db.post.count({ where: { published: true } }),
+    db.project.count(),
+    db.project.count({ where: { published: true } }),
+    db.skill.count(),
+    db.skill.count({ where: { published: true } }),
+    db.socialLink.count(),
+    db.socialLink.count({ where: { published: true } }),
+  ]);
 
   const cards = [
     {
@@ -40,6 +52,14 @@ export default async function Dashboard() {
       total: projects,
       detail: `${publishedProjects} tasi saytda ko'rinadi`,
       add: "/admin/projects/new",
+    },
+    {
+      href: "/admin/skills",
+      icon: "bi-stars",
+      title: "Ko'nikmalar",
+      total: skills,
+      detail: `${publishedSkills} tasi saytda ko'rinadi`,
+      add: "/admin/skills/new",
     },
     {
       href: "/admin/socials",

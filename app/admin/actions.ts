@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { notifyTelegram } from "@/lib/notify";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { createSession, deleteSession, requireAdmin } from "@/lib/session";
+import { resolveSkillIcon, SKILL_CATEGORY_KEYS } from "@/lib/skills";
 import { SLUG_PATTERN, slugify } from "@/lib/slug";
 import { deleteUpload, IMAGE_TYPES, saveUpload, type UploadFolder } from "@/lib/uploads";
 import { isLocalPath, isSafeUrl } from "@/lib/url";
@@ -259,6 +260,59 @@ export async function toggleSocial(id: string, published: boolean) {
   await db.socialLink.update({ where: { id }, data: { published } });
   refreshPublicSite();
   revalidatePath("/admin/socials");
+}
+
+// ---------------------------------------------------------------- skills
+
+const skillSchema = z.object({
+  name: text(60, "Nomini kiriting."),
+  category: z.enum(SKILL_CATEGORY_KEYS, "Bo'limni tanlang."),
+  icon: text(500, "Ikonka kiriting.").transform((value, ctx) => {
+    const url = resolveSkillIcon(value);
+    if (!url) {
+      ctx.addIssue({ code: "custom", message: "Devicon nomi (masalan, docker) yoki https:// manzil kiriting." });
+      return z.NEVER;
+    }
+    return url;
+  }),
+  sortOrder,
+  published: z.boolean(),
+});
+
+export async function saveSkill(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const values = formValues(formData);
+
+  const parsed = skillSchema.safeParse({ ...values, published: formData.get("published") === "on" });
+  if (!parsed.success) return invalid(parsed.error, values);
+
+  try {
+    if (id) {
+      await db.skill.update({ where: { id }, data: parsed.data });
+    } else {
+      await db.skill.create({ data: parsed.data });
+    }
+  } catch (error) {
+    console.error("[admin] saveSkill", error);
+    return { error: "Saqlashda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.", values };
+  }
+
+  refreshPublicSite();
+  redirect("/admin/skills");
+}
+
+export async function deleteSkill(id: string) {
+  await requireAdmin();
+  await db.skill.deleteMany({ where: { id } });
+  refreshPublicSite();
+  revalidatePath("/admin/skills");
+}
+
+export async function toggleSkill(id: string, published: boolean) {
+  await requireAdmin();
+  await db.skill.update({ where: { id }, data: { published } });
+  refreshPublicSite();
+  revalidatePath("/admin/skills");
 }
 
 // ---------------------------------------------------------------- blog posts

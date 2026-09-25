@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../lib/generated/prisma/client";
+import { devicon } from "../lib/skills";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
@@ -50,6 +51,59 @@ async function main() {
       ],
     });
     console.log("Seeded social links");
+  }
+
+  if ((await db.skill.count()) === 0) {
+    const groups: Record<string, [name: string, icon: string][]> = {
+      languages: [
+        ["TypeScript", devicon("typescript")],
+        ["JavaScript", devicon("javascript")],
+        ["Python", devicon("python")],
+        ["C++", devicon("cplusplus")],
+      ],
+      backend: [
+        ["Node.js", devicon("nodejs")],
+        ["Express.js", devicon("express")],
+        ["Prisma", devicon("prisma")],
+        ["PostgreSQL", devicon("postgresql")],
+        ["MongoDB", devicon("mongodb")],
+        ["NGINX", devicon("nginx")],
+      ],
+      frontend: [
+        ["HTML", devicon("html5")],
+        ["CSS", devicon("css3")],
+        ["Tailwind", devicon("tailwindcss")],
+        ["Bootstrap", devicon("bootstrap")],
+        ["Svelte", devicon("svelte")],
+        ["Next.js", devicon("nextjs")],
+        ["Axios", devicon("axios", "plain")],
+      ],
+      tools: [
+        ["Git", devicon("git")],
+        ["Bash", devicon("bash")],
+        ["VS Code", devicon("vscode")],
+        ["Figma", devicon("figma")],
+        ["Vercel", devicon("vercel")],
+        ["npm", devicon("npm", "original-wordmark")],
+      ],
+      infrastructure: [
+        ["Debian", devicon("debian")],
+        ["Cloudflare", devicon("cloudflare")],
+        ["SSH", devicon("ssh")],
+      ],
+      learning: [
+        ["Docker", devicon("docker")],
+        ["Socket.IO", devicon("socketio")],
+        ["RabbitMQ", devicon("rabbitmq")],
+        ["Elasticsearch", devicon("elasticsearch")],
+      ],
+    };
+    await db.skill.createMany({
+      data: Object.entries(groups).flatMap(([category, skills]) =>
+        skills.map(([name, icon], index) => ({ name, icon, category, sortOrder: index + 1 })),
+      ),
+    });
+    console.log("Seeded skills");
   }
 }
 

@@ -2,9 +2,9 @@
 
 Personal portfolio of Saad Takhir, built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, Prisma 7 and PostgreSQL.
 
-- **saad.uz**: the public portfolio. Skills and profile data live in `lib/`; projects, social links and blog posts come from the database. The contact form stores messages in the database.
+- **saad.uz**: the public portfolio. Profile data lives in `lib/`; skills, projects, social links and blog posts come from the database. The contact form stores messages in the database.
 - **saad.uz/blogs**: the blog. Posts are written in Markdown in the admin panel.
-- **app.saad.uz**: a password-protected admin panel for blog posts, contact messages, projects and social links. `proxy.ts` rewrites that host to `/admin`.
+- **app.saad.uz**: a password-protected admin panel for blog posts, contact messages, projects, skills and social links. `proxy.ts` rewrites that host to `/admin`.
 
 ## Local development
 

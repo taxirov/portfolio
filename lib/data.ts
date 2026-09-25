@@ -30,6 +30,15 @@ export function getPublishedSocials() {
   );
 }
 
+export function getPublishedSkills() {
+  return safe("skills", () =>
+    db.skill.findMany({
+      where: { published: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    }),
+  );
+}
+
 const postListSelect = {
   id: true,
   title: true,

@@ -14,6 +14,7 @@ export default async function PanelLayout({ children }: LayoutProps<"/admin">) {
     { href: "/admin/messages", label: "Xabarlar", icon: "bi-inbox", badge: unread },
     { href: "/admin/posts", label: "Blog", icon: "bi-journal-text" },
     { href: "/admin/projects", label: "Loyihalar", icon: "bi-folder" },
+    { href: "/admin/skills", label: "Ko'nikmalar", icon: "bi-stars" },
     { href: "/admin/socials", label: "Ijtimoiy tarmoqlar", icon: "bi-share" },
   ];
 
