@@ -1,14 +1,7 @@
-import type { Skill } from "@/lib/generated/prisma/client";
-import { SKILL_CATEGORIES, SKILL_CATEGORY_KEYS } from "@/lib/skills";
+import type { SkillGroup } from "@/lib/data";
 import { SectionTitle } from "./section-title";
 
-export function Skills({ skills }: { skills: Skill[] }) {
-  const groups = SKILL_CATEGORY_KEYS.map((key) => ({
-    key,
-    ...SKILL_CATEGORIES[key],
-    skills: skills.filter((skill) => skill.category === key),
-  })).filter((group) => group.skills.length > 0);
-
+export function Skills({ groups }: { groups: SkillGroup[] }) {
   if (groups.length === 0) return null;
 
   return (
@@ -16,7 +9,7 @@ export function Skills({ skills }: { skills: Skill[] }) {
       <SectionTitle>Skills</SectionTitle>
       {groups.map((group) => (
         <div
-          key={group.key}
+          key={group.id}
           className="flex flex-col gap-3 rounded-2xl bg-gradient-to-b from-stone-50 to-white p-4 shadow-md"
         >
           <h3 className="text-lg text-slate-500">

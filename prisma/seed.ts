@@ -53,6 +53,19 @@ async function main() {
     console.log("Seeded social links");
   }
 
+  if ((await db.skillCategory.count()) === 0) {
+    const categories = [
+      { id: "languages", title: "Programming languages", icon: "bi-translate" },
+      { id: "backend", title: "Backend", icon: "bi-hdd-stack" },
+      { id: "frontend", title: "Frontend", icon: "bi-window" },
+      { id: "tools", title: "Tools", icon: "bi-wrench-adjustable-circle" },
+      { id: "infrastructure", title: "Infrastructure", icon: "bi-cloud" },
+      { id: "learning", title: "Learning now", icon: "bi-broadcast" },
+    ];
+    await db.skillCategory.createMany({ data: categories.map((c, index) => ({ ...c, sortOrder: index + 1 })) });
+    console.log("Seeded skill categories");
+  }
+
   if ((await db.skill.count()) === 0) {
     const groups: Record<string, [name: string, icon: string][]> = {
       languages: [
@@ -99,8 +112,8 @@ async function main() {
       ],
     };
     await db.skill.createMany({
-      data: Object.entries(groups).flatMap(([category, skills]) =>
-        skills.map(([name, icon], index) => ({ name, icon, category, sortOrder: index + 1 })),
+      data: Object.entries(groups).flatMap(([categoryId, skills]) =>
+        skills.map(([name, icon], index) => ({ name, icon, categoryId, sortOrder: index + 1 })),
       ),
     });
     console.log("Seeded skills");

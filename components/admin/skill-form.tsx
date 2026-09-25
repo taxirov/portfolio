@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import type { FormState } from "@/app/admin/actions";
-import type { Skill } from "@/lib/generated/prisma/client";
-import { SKILL_CATEGORIES, SKILL_CATEGORY_KEYS } from "@/lib/skills";
+import type { Skill, SkillCategory } from "@/lib/generated/prisma/client";
 import { CheckboxField, FormError, SelectField, SubmitButton, TextField } from "./fields";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
   skill?: Skill;
+  categories: Pick<SkillCategory, "id" | "title">[];
+  /** Preselected category for a new skill (from ?category=). */
+  categoryId?: string;
 };
 
-const categoryOptions = SKILL_CATEGORY_KEYS.map((key) => ({ value: key, label: SKILL_CATEGORIES[key].title }));
-
-export function SkillForm({ action, skill }: Props) {
+export function SkillForm({ action, skill, categories, categoryId }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  const categoryOptions = categories.map((category) => ({ value: category.id, label: category.title }));
 
   return (
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">
@@ -24,10 +25,10 @@ export function SkillForm({ action, skill }: Props) {
       <div className="grid gap-5 md:grid-cols-2">
         <TextField name="name" label="Nomi" state={state} defaultValue={skill?.name} placeholder="Docker" required />
         <SelectField
-          name="category"
+          name="categoryId"
           label="Bo'lim"
           state={state}
-          defaultValue={skill?.category ?? "backend"}
+          defaultValue={skill?.categoryId ?? categoryId ?? categories[0]?.id}
           options={categoryOptions}
         />
       </div>

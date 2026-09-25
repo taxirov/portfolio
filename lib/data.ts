@@ -30,14 +30,21 @@ export function getPublishedSocials() {
   );
 }
 
-export function getPublishedSkills() {
-  return safe("skills", () =>
-    db.skill.findMany({
+/** Published skill groups that have at least one published skill. */
+export async function getSkillGroups() {
+  const groups = await safe("skills", () =>
+    db.skillCategory.findMany({
       where: { published: true },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      include: {
+        skills: { where: { published: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+      },
     }),
   );
+  return groups.filter((group) => group.skills.length > 0);
 }
+
+export type SkillGroup = Awaited<ReturnType<typeof getSkillGroups>>[number];
 
 const postListSelect = {
   id: true,

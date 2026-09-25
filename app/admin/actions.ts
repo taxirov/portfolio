@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import { notifyTelegram } from "@/lib/notify";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { createSession, deleteSession, requireAdmin } from "@/lib/session";
-import { resolveSkillIcon, SKILL_CATEGORY_KEYS } from "@/lib/skills";
+import { resolveCategoryIcon, resolveSkillIcon } from "@/lib/skills";
 import { SLUG_PATTERN, slugify } from "@/lib/slug";
 import { deleteUpload, IMAGE_TYPES, saveUpload, type UploadFolder } from "@/lib/uploads";
 import { isLocalPath, isSafeUrl } from "@/lib/url";
@@ -266,7 +266,7 @@ export async function toggleSocial(id: string, published: boolean) {
 
 const skillSchema = z.object({
   name: text(60, "Nomini kiriting."),
-  category: z.enum(SKILL_CATEGORY_KEYS, "Bo'limni tanlang."),
+  categoryId: text(40, "Bo'limni tanlang."),
   icon: text(500, "Ikonka kiriting.").transform((value, ctx) => {
     const url = resolveSkillIcon(value);
     if (!url) {
@@ -285,6 +285,9 @@ export async function saveSkill(id: string | null, _prev: FormState, formData: F
 
   const parsed = skillSchema.safeParse({ ...values, published: formData.get("published") === "on" });
   if (!parsed.success) return invalid(parsed.error, values);
+
+  const category = await db.skillCategory.findUnique({ where: { id: parsed.data.categoryId }, select: { id: true } });
+  if (!category) return { fieldErrors: { categoryId: ["Bo'lim topilmadi (o'chirilgan bo'lishi mumkin)."] }, values };
 
   try {
     if (id) {
@@ -311,6 +314,61 @@ export async function deleteSkill(id: string) {
 export async function toggleSkill(id: string, published: boolean) {
   await requireAdmin();
   await db.skill.update({ where: { id }, data: { published } });
+  refreshPublicSite();
+  revalidatePath("/admin/skills");
+}
+
+const skillCategorySchema = z.object({
+  title: text(60, "Nomini kiriting."),
+  icon: text(60, "Ikonka kiriting.").transform((value, ctx) => {
+    const icon = resolveCategoryIcon(value);
+    if (!icon) {
+      ctx.addIssue({ code: "custom", message: "Bootstrap Icons nomini kiriting, masalan: cloud yoki bi-cloud." });
+      return z.NEVER;
+    }
+    return icon;
+  }),
+  sortOrder,
+  published: z.boolean(),
+});
+
+export async function saveSkillCategory(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const values = formValues(formData);
+
+  const parsed = skillCategorySchema.safeParse({ ...values, published: formData.get("published") === "on" });
+  if (!parsed.success) return invalid(parsed.error, values);
+
+  try {
+    if (id) {
+      await db.skillCategory.update({ where: { id }, data: parsed.data });
+    } else {
+      await db.skillCategory.create({ data: parsed.data });
+    }
+  } catch (error) {
+    console.error("[admin] saveSkillCategory", error);
+    return { error: "Saqlashda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.", values };
+  }
+
+  refreshPublicSite();
+  redirect("/admin/skills");
+}
+
+/** Only empty categories can be deleted, so a click never takes skills with it. */
+export async function deleteSkillCategory(id: string): Promise<{ error?: string } | void> {
+  await requireAdmin();
+  const skills = await db.skill.count({ where: { categoryId: id } });
+  if (skills > 0) {
+    return { error: `Bu bo'limda ${skills} ta ko'nikma bor. Avval ularni boshqa bo'limga o'tkazing yoki o'chiring.` };
+  }
+  await db.skillCategory.deleteMany({ where: { id } });
+  refreshPublicSite();
+  revalidatePath("/admin/skills");
+}
+
+export async function toggleSkillCategory(id: string, published: boolean) {
+  await requireAdmin();
+  await db.skillCategory.update({ where: { id }, data: { published } });
   refreshPublicSite();
   revalidatePath("/admin/skills");
 }

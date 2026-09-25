@@ -6,17 +6,17 @@ import { LatestPosts } from "@/components/site/latest-posts";
 import { Navbar } from "@/components/site/navbar";
 import { Projects } from "@/components/site/projects";
 import { Skills } from "@/components/site/skills";
-import { getPublishedPosts, getPublishedProjects, getPublishedSkills, getPublishedSocials } from "@/lib/data";
+import { getPublishedPosts, getPublishedProjects, getPublishedSocials, getSkillGroups } from "@/lib/data";
 
 // Admin edits call revalidatePath("/"); this is only the fallback refresh interval.
 export const revalidate = 300;
 
 export default async function Home() {
-  const [projects, socials, posts, skills] = await Promise.all([
+  const [projects, socials, posts, skillGroups] = await Promise.all([
     getPublishedProjects(),
     getPublishedSocials(),
     getPublishedPosts(3),
-    getPublishedSkills(),
+    getSkillGroups(),
   ]);
 
   return (
@@ -24,7 +24,7 @@ export default async function Home() {
       <Navbar />
       <main className="mx-auto max-w-7xl px-4 pb-28 md:px-10 md:pb-16">
         <Hero socials={socials.filter((s) => s.showInHero)} />
-        <Skills skills={skills} />
+        <Skills groups={skillGroups} />
         <Projects projects={projects} />
         <LatestPosts posts={posts} />
         <About socials={socials} />

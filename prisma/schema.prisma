@@ -81,17 +81,32 @@ model LoginAttempt {
   @@index([createdAt])
 }
 
-/// Skills section on the home page; categories are defined in lib/skills.ts.
-model Skill {
+/// Skill groups on the home page ("Backend", "Tools", ...).
+model SkillCategory {
   id        String   @id @default(cuid())
-  name      String
-  category  String
-  /// Icon image URL (usually a devicon SVG)
+  title     String
+  /// Bootstrap Icons class, e.g. bi-cloud
   icon      String
   sortOrder Int      @default(0)
   published Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  skills    Skill[]
 
-  @@index([published, category, sortOrder])
+  @@index([sortOrder])
+}
+
+model Skill {
+  id         String        @id @default(cuid())
+  name       String
+  categoryId String
+  category   SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  /// Icon image URL (usually a devicon SVG)
+  icon       String
+  sortOrder  Int           @default(0)
+  published  Boolean       @default(true)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([categoryId, sortOrder])
 }

@@ -7,7 +7,8 @@ type Props = {
   editHref: string;
   published: boolean;
   onToggle: () => Promise<void>;
-  onDelete: () => Promise<void>;
+  /** May return an error to show instead of deleting. */
+  onDelete: () => Promise<{ error?: string } | void>;
   confirmText: string;
 };
 
@@ -36,7 +37,11 @@ export function RowActions({ editHref, published, onToggle, onDelete, confirmTex
       <button
         type="button"
         onClick={() => {
-          if (confirm(confirmText)) startTransition(onDelete);
+          if (!confirm(confirmText)) return;
+          startTransition(async () => {
+            const result = await onDelete();
+            if (result?.error) alert(result.error);
+          });
         }}
         title="O'chirish"
         aria-label="O'chirish"
