@@ -54,6 +54,10 @@ model Message {
   body      String
   /// sha256 of the sender IP, only used for rate limiting
   ipHash    String?
+  /// Set when the message is an offer for a domain from the "Domains for sale" section
+  domain    String?
+  offer     Int?
+  currency  String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -144,4 +148,25 @@ model Skill {
   updatedAt  DateTime      @updatedAt
 
   @@index([categoryId, sortOrder])
+}
+
+/// Domains for sale, shown at /{lang}/domains; offers arrive as Messages.
+model Domain {
+  id            String   @id @default(cuid())
+  /// Lowercase, e.g. example.uz
+  name          String   @unique
+  /// Asking price in whole units of `currency`; empty means "make an offer"
+  price         Int?
+  /// USD or UZS
+  currency      String   @default("USD")
+  descriptionUz String?
+  descriptionRu String?
+  descriptionEn String?
+  sold          Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  published     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([published, sortOrder])
 }

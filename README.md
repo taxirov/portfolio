@@ -4,7 +4,8 @@ Personal portfolio of Saad Takhir, built with Next.js 16 (App Router), TypeScrip
 
 - **saad.uz/{uz,ru,en}**: the public portfolio in Uzbek, Russian and English. Profile data lives in `lib/`; skills, projects, social links and blog posts come from the database. The contact form stores messages in the database.
 - **saad.uz/{lang}/blogs**: the blog. Posts are written in Markdown in the admin panel.
-- **app.saad.uz**: a password-protected admin panel for blog posts, contact messages, projects, skills and social links. `proxy.ts` rewrites that host to `/admin`.
+- **saad.uz/{lang}/domains**: domains for sale (also a section on the home page). Visitors send offers from a dialog; offers land in the admin inbox with the domain and amount, and in Telegram when it is configured.
+- **app.saad.uz**: a password-protected admin panel for blog posts, contact messages and domain offers, projects, skills, domains for sale and social links. `proxy.ts` rewrites that host to `/admin`.
 
 ## Languages
 

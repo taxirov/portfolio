@@ -7,6 +7,7 @@ import { after } from "next/server";
 import { z } from "zod";
 import { clientIpHash } from "@/lib/client-ip";
 import { db } from "@/lib/db";
+import { CURRENCIES, DOMAIN_PATTERN, normalizeDomain } from "@/lib/domains";
 import { notifyTelegram } from "@/lib/notify";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { createSession, deleteSession, requireAdmin } from "@/lib/session";
@@ -399,6 +400,67 @@ export async function toggleSkillCategory(id: string, published: boolean) {
   await db.skillCategory.update({ where: { id }, data: { published } });
   refreshPublicSite();
   revalidatePath("/admin/skills");
+}
+
+// ---------------------------------------------------------------- domains for sale
+
+const domainSchema = z.object({
+  name: str()
+    .transform(normalizeDomain)
+    .pipe(z.string().min(1, "Domen nomini kiriting.").regex(DOMAIN_PATTERN, "Masalan: example.uz yoki my-shop.com")),
+  price: z.preprocess(
+    (v) => (typeof v === "string" ? v.replace(/[\s,.]/g, "") : v) || undefined,
+    z.coerce.number("Son kiriting.").int("Butun son kiriting.").positive("Noldan katta son kiriting.").max(1e12).optional(),
+  ),
+  currency: z.enum(CURRENCIES, "Valyutani tanlang."),
+  ...translated("description", 500),
+  sortOrder,
+  sold: z.boolean(),
+  published: z.boolean(),
+});
+
+export async function saveDomain(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const values = formValues(formData);
+
+  const parsed = domainSchema.safeParse({
+    ...values,
+    sold: formData.get("sold") === "on",
+    published: formData.get("published") === "on",
+  });
+  if (!parsed.success) return invalid(parsed.error, values);
+  const data = { ...parsed.data, price: parsed.data.price ?? null };
+
+  const taken = await db.domain.findUnique({ where: { name: data.name }, select: { id: true } });
+  if (taken && taken.id !== id) return { fieldErrors: { name: ["Bu domen ro'yxatda bor."] }, values };
+
+  try {
+    if (id) {
+      await db.domain.update({ where: { id }, data });
+    } else {
+      await db.domain.create({ data });
+    }
+  } catch (error) {
+    console.error("[admin] saveDomain", error);
+    return { error: "Saqlashda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.", values };
+  }
+
+  refreshPublicSite();
+  redirect("/admin/domains");
+}
+
+export async function deleteDomain(id: string) {
+  await requireAdmin();
+  await db.domain.deleteMany({ where: { id } });
+  refreshPublicSite();
+  revalidatePath("/admin/domains");
+}
+
+export async function toggleDomain(id: string, published: boolean) {
+  await requireAdmin();
+  await db.domain.update({ where: { id }, data: { published } });
+  refreshPublicSite();
+  revalidatePath("/admin/domains");
 }
 
 // ---------------------------------------------------------------- blog posts

@@ -30,6 +30,17 @@ export function getPublishedSocials() {
   );
 }
 
+/** Published domains, unsold first. */
+export function getPublishedDomains(take?: number) {
+  return safe("domains", () =>
+    db.domain.findMany({
+      where: { published: true },
+      orderBy: [{ sold: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
+      take,
+    }),
+  );
+}
+
 /** Published skill groups that have at least one published skill. */
 export async function getSkillGroups() {
   const groups = await safe("skills", () =>

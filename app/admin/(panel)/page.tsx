@@ -14,6 +14,8 @@ export default async function Dashboard() {
     publishedProjects,
     skills,
     publishedSkills,
+    domains,
+    domainOffers,
     socials,
     publishedSocials,
   ] = await Promise.all([
@@ -25,6 +27,8 @@ export default async function Dashboard() {
     db.project.count({ where: { published: true } }),
     db.skill.count(),
     db.skill.count({ where: { published: true } }),
+    db.domain.count({ where: { sold: false } }),
+    db.message.count({ where: { domain: { not: null } } }),
     db.socialLink.count(),
     db.socialLink.count({ where: { published: true } }),
   ]);
@@ -60,6 +64,14 @@ export default async function Dashboard() {
       total: skills,
       detail: `${publishedSkills} tasi saytda ko'rinadi`,
       add: "/admin/skills/new",
+    },
+    {
+      href: "/admin/domains",
+      icon: "bi-globe",
+      title: "Sotuvdagi domenlar",
+      total: domains,
+      detail: `${domainOffers} ta taklif kelgan`,
+      add: "/admin/domains/new",
     },
     {
       href: "/admin/socials",
