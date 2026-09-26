@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { logout } from "@/app/admin/actions";
+import { LogoutButton } from "@/components/admin/logout-button";
 import { db } from "@/lib/db";
 import { profile } from "@/lib/profile";
 import { requireAdmin } from "@/lib/session";
@@ -51,14 +51,7 @@ export default async function PanelLayout({ children }: LayoutProps<"/admin">) {
           >
             <i className="bi bi-box-arrow-up-right" aria-hidden /> Saytni ochish
           </a>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-white hover:text-red-600"
-            >
-              <i className="bi bi-box-arrow-left" aria-hidden /> Chiqish
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </aside>
       <main className="min-w-0 flex-1">{children}</main>

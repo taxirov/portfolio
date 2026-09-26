@@ -1,11 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { login } from "@/app/admin/actions";
 import { FormError } from "./fields";
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, undefined);
+  const target = state?.redirectTo;
+
+  // A full page load, so the first request to the panel carries the new session cookie.
+  useEffect(() => {
+    if (target) window.location.assign(target);
+  }, [target]);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -23,10 +29,10 @@ export function LoginForm() {
       </label>
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !!target}
         className="rounded-lg bg-indigo-600 py-2.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
       >
-        {pending ? "Tekshirilmoqda..." : "Kirish"}
+        {pending || target ? "Tekshirilmoqda..." : "Kirish"}
       </button>
     </form>
   );

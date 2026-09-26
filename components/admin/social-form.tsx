@@ -6,6 +6,7 @@ import type { FormState } from "@/app/admin/actions";
 import type { SocialLink } from "@/lib/generated/prisma/client";
 import { PLATFORMS, PLATFORM_KEYS } from "@/lib/platforms";
 import { CheckboxField, FormError, SelectField, SubmitButton, TextField } from "./fields";
+import { useFormRedirect } from "./use-form-redirect";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -16,6 +17,7 @@ const platformOptions = PLATFORM_KEYS.map((key) => ({ value: key, label: PLATFOR
 
 export function SocialForm({ action, social }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  useFormRedirect(state);
 
   return (
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">
@@ -72,7 +74,7 @@ export function SocialForm({ action, social }: Props) {
       </div>
 
       <div className="flex items-center gap-3 border-t border-slate-100 pt-5">
-        <SubmitButton pending={pending}>{social ? "Saqlash" : "Qo'shish"}</SubmitButton>
+        <SubmitButton pending={pending || !!state?.redirectTo}>{social ? "Saqlash" : "Qo'shish"}</SubmitButton>
         <Link href="/admin/socials" className="px-3 py-2 text-slate-600 hover:text-slate-900">
           Bekor qilish
         </Link>

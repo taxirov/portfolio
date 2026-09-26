@@ -6,6 +6,7 @@ import type { FormState } from "@/app/admin/actions";
 import type { Skill, SkillCategory } from "@/lib/generated/prisma/client";
 import { t } from "@/lib/i18n";
 import { CheckboxField, FormError, SelectField, SubmitButton, TextField } from "./fields";
+import { useFormRedirect } from "./use-form-redirect";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -17,6 +18,7 @@ type Props = {
 
 export function SkillForm({ action, skill, categories, categoryId }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  useFormRedirect(state);
   const categoryOptions = categories.map((category) => ({ value: category.id, label: t(category, "title", "uz") }));
 
   return (
@@ -63,7 +65,7 @@ export function SkillForm({ action, skill, categories, categoryId }: Props) {
       </div>
 
       <div className="flex items-center gap-3 border-t border-slate-100 pt-5">
-        <SubmitButton pending={pending}>{skill ? "Saqlash" : "Qo'shish"}</SubmitButton>
+        <SubmitButton pending={pending || !!state?.redirectTo}>{skill ? "Saqlash" : "Qo'shish"}</SubmitButton>
         <Link href="/admin/skills" className="px-3 py-2 text-slate-600 hover:text-slate-900">
           Bekor qilish
         </Link>

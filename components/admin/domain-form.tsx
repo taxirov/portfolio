@@ -7,6 +7,7 @@ import { CURRENCIES } from "@/lib/domains";
 import type { Domain } from "@/lib/generated/prisma/client";
 import { CheckboxField, FormError, SelectField, SubmitButton, TextField } from "./fields";
 import { LangTabs } from "./lang-tabs";
+import { useFormRedirect } from "./use-form-redirect";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -20,6 +21,7 @@ const currencyOptions = CURRENCIES.map((currency) => ({
 
 export function DomainForm({ action, domain }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  useFormRedirect(state);
 
   return (
     <form action={formAction} className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm md:p-6">
@@ -86,7 +88,7 @@ export function DomainForm({ action, domain }: Props) {
       </div>
 
       <div className="flex items-center gap-3 border-t border-slate-100 pt-5">
-        <SubmitButton pending={pending}>{domain ? "Saqlash" : "Qo'shish"}</SubmitButton>
+        <SubmitButton pending={pending || !!state?.redirectTo}>{domain ? "Saqlash" : "Qo'shish"}</SubmitButton>
         <Link href="/admin/domains" className="px-3 py-2 text-slate-600 hover:text-slate-900">
           Bekor qilish
         </Link>

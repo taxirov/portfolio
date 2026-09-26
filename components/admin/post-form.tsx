@@ -10,6 +10,7 @@ import { profile } from "@/lib/profile";
 import { slugify } from "@/lib/slug";
 import { CheckboxField, Field, FormError, SubmitButton, TextField } from "./fields";
 import { LangTabs } from "./lang-tabs";
+import { useFormRedirect } from "./use-form-redirect";
 
 type Props = {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
@@ -29,6 +30,7 @@ function perLocale(post: Post | undefined, field: "title" | "content"): PerLocal
 
 export function PostForm({ action, post }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  useFormRedirect(state);
   const [titles, setTitles] = useState(() => perLocale(post, "title"));
   const [contents, setContents] = useState(() => perLocale(post, "content"));
   const [mode, setMode] = useState<"write" | "preview">("write");
@@ -131,7 +133,7 @@ export function PostForm({ action, post }: Props) {
       <CheckboxField name="published" label="E'lon qilish (saytda ko'rinadi)" state={state} defaultChecked={post?.published ?? false} />
 
       <div className="flex items-center gap-3 border-t border-slate-100 pt-5">
-        <SubmitButton pending={pending}>{post ? "Saqlash" : "Yaratish"}</SubmitButton>
+        <SubmitButton pending={pending || !!state?.redirectTo}>{post ? "Saqlash" : "Yaratish"}</SubmitButton>
         <Link href="/admin/posts" className="px-3 py-2 text-slate-600 hover:text-slate-900">
           Bekor qilish
         </Link>

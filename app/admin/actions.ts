@@ -2,7 +2,6 @@
 
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
 import { clientIpHash } from "@/lib/client-ip";
@@ -22,6 +21,8 @@ export type FormState =
       fieldErrors?: Partial<Record<string, string[]>>;
       /** Echoed back so the form keeps what was typed after a failed submit. */
       values?: Record<string, string>;
+      /** Set on success: the form navigates here (see useFormRedirect). */
+      redirectTo?: string;
     }
   | undefined;
 
@@ -61,12 +62,21 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   }
 
   await createSession();
-  redirect("/admin");
+  return { redirectTo: "/admin" };
 }
 
 export async function logout() {
   await deleteSession();
-  redirect("/admin/login");
+}
+
+/**
+ * Result of a successful save. Admin actions do not call redirect(): Next pre-renders the redirect
+ * target inside the action response, and on Netlify that render does not see the session cookie,
+ * so the login form showed up instead of the page. The browser navigates itself, with its cookies.
+ */
+function saved(path: string): FormState {
+  revalidatePath("/admin", "layout");
+  return { redirectTo: path };
 }
 
 // ---------------------------------------------------------------- helpers
@@ -198,7 +208,7 @@ export async function saveProject(id: string | null, _prev: FormState, formData:
   }
 
   refreshPublicSite();
-  redirect("/admin/projects");
+  return saved("/admin/projects");
 }
 
 export async function deleteProject(id: string) {
@@ -272,7 +282,7 @@ export async function saveSocial(id: string | null, _prev: FormState, formData: 
   }
 
   refreshPublicSite();
-  redirect("/admin/socials");
+  return saved("/admin/socials");
 }
 
 export async function deleteSocial(id: string) {
@@ -328,7 +338,7 @@ export async function saveSkill(id: string | null, _prev: FormState, formData: F
   }
 
   refreshPublicSite();
-  redirect("/admin/skills");
+  return saved("/admin/skills");
 }
 
 export async function deleteSkill(id: string) {
@@ -380,7 +390,7 @@ export async function saveSkillCategory(id: string | null, _prev: FormState, for
   }
 
   refreshPublicSite();
-  redirect("/admin/skills");
+  return saved("/admin/skills");
 }
 
 /** Only empty categories can be deleted, so a click never takes skills with it. */
@@ -446,7 +456,7 @@ export async function saveDomain(id: string | null, _prev: FormState, formData: 
   }
 
   refreshPublicSite();
-  redirect("/admin/domains");
+  return saved("/admin/domains");
 }
 
 export async function deleteDomain(id: string) {
@@ -518,7 +528,7 @@ export async function savePost(id: string | null, _prev: FormState, formData: Fo
   }
 
   refreshPublicSite();
-  redirect("/admin/posts");
+  return saved("/admin/posts");
 }
 
 export async function deletePost(id: string) {
