@@ -2,8 +2,8 @@
 export const LOCALES = ["uz", "ru", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 
-/** Used when the browser language is none of the above. */
-export const DEFAULT_LOCALE: Locale = "en";
+/** Opened for visitors who have not picked a language with the switcher; the browser language is ignored. */
+export const DEFAULT_LOCALE: Locale = "uz";
 
 export const LOCALE_COOKIE = "lang";
 
@@ -69,19 +69,4 @@ export function plural(forms: PluralForms, count: number, locale: Locale) {
 /** Replaces {name} placeholders. */
 export function fill(template: string, values: Record<string, string>) {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
-}
-
-/** Picks the best supported language from an Accept-Language header. */
-export function matchLocale(acceptLanguage: string | null): Locale | null {
-  if (!acceptLanguage) return null;
-  const ranked = acceptLanguage
-    .split(",")
-    .map((part) => {
-      const [tag, ...params] = part.trim().split(";");
-      const q = params.find((p) => p.trim().startsWith("q="));
-      return { base: tag.trim().toLowerCase().split("-")[0], q: q ? Number(q.trim().slice(2)) || 0 : 1 };
-    })
-    .filter((entry) => entry.q > 0)
-    .sort((a, b) => b.q - a.q);
-  return ranked.map((entry) => entry.base).find(hasLocale) ?? null;
 }
