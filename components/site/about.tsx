@@ -15,12 +15,6 @@ export async function About({ socials }: { socials: SocialLink[] }) {
     { icon: "bi-geo-alt-fill", label: dict.about.address, value: dict.profile.address },
     { icon: "bi-briefcase-fill", label: dict.about.jobTitle, value: dict.profile.jobTitle },
     { icon: "bi-envelope-fill", label: dict.about.email, value: profile.email, href: `mailto:${profile.email}` },
-    {
-      icon: "bi-telephone-fill",
-      label: dict.about.phone,
-      value: profile.phone,
-      href: `tel:${profile.phone.replace(/\s/g, "")}`,
-    },
   ];
 
   return (

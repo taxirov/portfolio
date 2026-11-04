@@ -9,7 +9,7 @@ const ru: Dictionary = {
   },
   profile: {
     jobTitle: "Backend-разработчик",
-    address: "Шават, Узбекистан",
+    address: "Хорезм, Узбекистан",
   },
   nav: {
     home: "Главная",
@@ -82,7 +82,6 @@ const ru: Dictionary = {
     address: "Адрес",
     jobTitle: "Должность",
     email: "Email",
-    phone: "Телефон",
     coding: "Программирование",
     findMe: "Я в сети",
     codewarsAlt: "Значок профиля Codewars",

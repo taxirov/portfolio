@@ -9,7 +9,7 @@ const uz: Dictionary = {
   },
   profile: {
     jobTitle: "Backend dasturchi",
-    address: "Shovot, O'zbekiston",
+    address: "Xorazm, O'zbekiston",
   },
   nav: {
     home: "Bosh sahifa",
@@ -82,7 +82,6 @@ const uz: Dictionary = {
     address: "Manzil",
     jobTitle: "Lavozim",
     email: "Email",
-    phone: "Telefon",
     coding: "Dasturlash",
     findMe: "Ijtimoiy tarmoqlarda",
     codewarsAlt: "Codewars profil nishoni",

@@ -2,8 +2,7 @@
 export const profile = {
   name: "Saad Takhir",
   fullName: "Sevinchbek Taxirov",
-  email: "saadtakhirwork@gmail.com",
-  phone: "+998 90 578 92 04",
+  email: "sevinchbektoxirov@gmail.com",
   siteUrl: "https://saad.uz",
   codewarsUser: "taxirov",
   leetcodeUser: "taxirov",
