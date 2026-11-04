@@ -9,7 +9,7 @@ const en = {
   },
   profile: {
     jobTitle: "Backend Developer",
-    address: "Shavat, Uzbekistan",
+    address: "Khorezm, Uzbekistan",
   },
   nav: {
     home: "Home",
@@ -82,7 +82,6 @@ const en = {
     address: "Address",
     jobTitle: "Job title",
     email: "Email",
-    phone: "Phone",
     coding: "Coding",
     findMe: "Find me online",
     codewarsAlt: "Codewars profile badge",

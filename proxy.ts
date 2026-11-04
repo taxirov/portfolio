@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { DEFAULT_LOCALE, hasLocale, LOCALE_COOKIE, matchLocale } from "@/lib/i18n";
+import { DEFAULT_LOCALE, hasLocale, LOCALE_COOKIE } from "@/lib/i18n";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session-token";
 
 const ADMIN_HOST = process.env.ADMIN_HOST ?? "app.saad.uz";
@@ -8,7 +8,7 @@ const MAIN_HOST = ADMIN_HOST.replace(/^app\./, "");
 /**
  * app.saad.uz/*  -> rewritten to /admin/*  (so app.saad.uz/ opens the panel)
  * saad.uz/admin  -> redirected to app.saad.uz/admin
- * saad.uz/blogs  -> redirected to saad.uz/{uz|ru|en}/blogs (saved choice, then browser language)
+ * saad.uz/blogs  -> redirected to saad.uz/{uz|ru|en}/blogs (saved choice, otherwise Uzbek)
  * Locally the panel is reachable at http://app.localhost:3000 or http://localhost:3000/admin.
  *
  * The session check here is only an optimistic redirect; pages and actions call requireAdmin().
@@ -45,7 +45,7 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-/** Public pages live under /uz, /ru and /en; anything else gets the visitor's language prefixed. */
+/** Public pages live under /uz, /ru and /en; anything else gets the saved language (or Uzbek) prefixed. */
 function withLocale(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const first = pathname.split("/")[1] ?? "";
@@ -53,7 +53,7 @@ function withLocale(request: NextRequest) {
   if (hasLocale(first) || first === "api" || /\.[a-z0-9]+$/i.test(pathname)) return NextResponse.next();
 
   const saved = request.cookies.get(LOCALE_COOKIE)?.value ?? "";
-  const locale = hasLocale(saved) ? saved : (matchLocale(request.headers.get("accept-language")) ?? DEFAULT_LOCALE);
+  const locale = hasLocale(saved) ? saved : DEFAULT_LOCALE;
   const url = request.nextUrl.clone();
   url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
   url.search = search;

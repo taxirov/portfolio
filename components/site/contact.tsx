@@ -15,12 +15,6 @@ export async function Contact() {
           <a href={`mailto:${profile.email}`} className="flex items-center gap-2 font-medium hover:text-indigo-600">
             <i className="bi bi-envelope-fill" aria-hidden /> {profile.email}
           </a>
-          <a
-            href={`tel:${profile.phone.replace(/\s/g, "")}`}
-            className="flex items-center gap-2 font-medium hover:text-indigo-600"
-          >
-            <i className="bi bi-telephone-fill" aria-hidden /> {profile.phone}
-          </a>
         </div>
         <ContactForm locale={locale} dict={dict.contact} />
       </div>
